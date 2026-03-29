@@ -1,10 +1,22 @@
 package com.local.event.finder.model.entity;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Table;
+import jakarta.persistence.Id;
+import jakarta.persistence.Column;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Email;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.validator.constraints.URL;
 import java.time.LocalDateTime;
 
@@ -41,6 +53,7 @@ public class User {
     @Max(100)
     private int age;
 
+    @CreationTimestamp
     @Column(nullable = false, updatable = false)
     @PastOrPresent
     private LocalDateTime createdAt;
