@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.validator.constraints.URL;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -70,4 +71,10 @@ public class Event {
     @Column(nullable = false, updatable = false)
     @PastOrPresent
     private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "eventTags")
+    private Set<EventTag> eventTags;
+
+    @OneToMany(mappedBy = "eventCategory")
+    private Set<EventCategory> eventCategory;
 }

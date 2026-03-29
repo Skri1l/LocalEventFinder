@@ -1,24 +1,27 @@
 package com.local.event.finder.model.entity;
 
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.util.Set;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "categories")
-public class Categories {
+@Table(name = "tags")
+public class Tag {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     @NotBlank
     private String name;
+
+    @OneToMany(mappedBy = "tag")
+    private Set<EventTag> eventTag;
 }
