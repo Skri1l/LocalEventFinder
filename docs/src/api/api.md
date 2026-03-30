@@ -1,56 +1,57 @@
-# API
+# API 
 
-- [Responce Template](#responce-template)
-- [Users](#users)
-
-## Responce Template
+## Response Format
 
 ```json
 {
-  "datetime": "response date time",
-  "count": 0,
-  "data": {}
+  "datetime": "2026-03-30T12:00:00Z",
+  "data": {
+    "items": [],        // an array of objects (for lists) or a single object
+    "count": 1,         // number of items in the response (for a list)
+    "total": 1          // total number of items (for a list)
+  },
+  "error": null          // null if success, object if error
 }
 ```
 
-- datetime - timestamp of the date and time of the response,
-- count - amount of data,
-- data - useful information.
+### Success Example
 
-## Users
-
-Mapping by `/users`
-
-### Register User
-
-**POST** `/users/register`
-
-Request:
 ```json
-{ 
-    "username": "john_doe", 
-    "email": "john@example.com", 
-    "password": "password123", 
-    "avatar_url": "https://example.com/avatar.png", 
-    "age": 25 
+{
+  "datetime": "2026-03-30T12:00:00Z",
+  "data": {
+    "user": {
+      "id": "123",
+      "username": "john_doe",
+      "email": "john@example.com",
+      "age": 25,
+      "avatar_url": "https://example.com/avatar.png"
+    }
+  },
+  "error": null
 }
 ```
 
-Responce:
+### Error Example
+
 ```json
-{ 
-    "id": "uuid", 
-    "username": "john_doe", 
-    "email": "john@example.com", 
-    "avatar_url": "...", 
-    "age": 25, 
-    "created_at": "timestamp" 
+{
+  "datetime": "2026-03-30T12:00:00Z",
+  "data": null,
+  "error": {
+    "code": 404,
+    "message": "User not found"
+  }
 }
 ```
 
-### Login user
+## Authentication
 
-**POST** `/users/login`
+### Login
+
+**POST** `/auth/login`
+
+**Request:**
 
 ```json
 {
@@ -59,115 +60,146 @@ Responce:
 }
 ```
 
-### Get User
+**Response:**
 
-**GET** `/users/{id}` 
-
-Responce:
 ```json
-{ 
-    "id": "uuid", 
-    "username": "john_doe", 
-    "email": "john@example.com", 
-    "avatar_url": "...", 
-    "age": 25, 
-    "created_at": "timestamp" 
+{
+  "datetime": "...",
+  "data": {
+    "access_token": "jwt",
+    "refresh_token": "jwt",
+    "expires_in": 3600
+  }
 }
 ```
 
-### Update User
+### Auth Header
 
-**PUT** `/users/{id}` 
+```
+Authorization: Bearer <access_token>
+```
+
+## Users
+
+### Register User
+
+**POST** `/users`
+
+**Request:**
+
+```json
+{
+  "username": "john_doe",
+  "email": "john@example.com",
+  "password": "StrongPassword123!",
+  "avatar_url": "https://example.com/avatar.png",
+  "age": 25
+}
+```
+
+### Get User
+
+**GET** `/users/{id}`
+
+### Update User (Partial)
+
+**PATCH** `/users/{id}`
+
+**Request Example:**
+
+```json
+{
+  "username": "new_name"
+}
+```
 
 ### Delete User
 
-**DELETE** `/users/{id}` 
+**DELETE** `/users/{id}`
 
 ## Events
 
-Mapping by `/events`
-
-### Event create
+### Create Event
 
 **POST** `/events`
 
-Request:
+**Request:**
+
 ```json
-{ 
-    "title": "Music Festival", 
-    "description": "Outdoor event", 
-    "latitude": 54.6872, 
-    "longitude": 25.2797, 
-    "country": "Lithuania", 
-    "city": "Vilnius", 
-    "start_time": "2026-06-01T10:00:00Z", 
-    "end_time": "2026-06-01T18:00:00Z", 
-    "max_participants": 100, 
-    "age_restriction": 18,
-    "image_url": "...", 
-    "created_by": "user_uuid" 
+{
+  "title": "Music Festival",
+  "description": "Outdoor event",
+  "latitude": 54.6872,
+  "longitude": 25.2797,
+  "start_time": "2026-06-01T10:00:00Z",
+  "end_time": "2026-06-01T18:00:00Z",
+  "max_participants": 100,
+  "age_restriction": 18,
+  "image_url": "...",
+  "status": "active"
 }
 ```
+
+> `created_by` tooks from tocken
 
 ### Get Event
 
 **GET** `/events/{id}`
 
-### List Event
+### List Events
 
 **GET** `/events`
 
-Query Parameters:
-- `city`
-- `country`
-- `category_id`
-- `tag_id`
-- `date_from`
-- `date_to`
+**Query parameters:**
+
+```
+?city=Vilnius
+&country=Lithuania
+&category_id=uuid
+&tag_id=uuid
+&date_from=2026-01-01
+&date_to=2026-12-31
+&limit=20
+&offset=0
+```
 
 ### Update Event
 
-**PUT** `/events/{id}`
+**PATCH** `/events/{id}`
 
 ### Delete Event
 
 **DELETE** `/events/{id}`
 
+### Event Status
+
+```json
+"status": "draft | active | cancelled | finished"
+```
+
 ## Event Participants
 
 ### Join Event
 
-**POST** `/events/{id}/join`
+**POST** `/events/{id}/participants`
 
-Request:
-```json
-{ 
-    "user_id": "uuid" 
-}
-```
+> The user is identified by the token, `user_id` is not transmitted.
 
 ### Leave Event
 
-**POST** `/events/{id}/leave`
+**DELETE** `/events/{id}/participants/me`
 
-Request:
-```json
-{ 
-    "user_id": "uuid" 
-}
-```
-
-### Get Event Participants
+### Get Participants
 
 **GET** `/events/{id}/participants`
 
-## Categories
-
-Mapping by  `/categories`
+## 🏷 Categories
 
 ### Create Category
 
 **POST** `/categories`
+
+**Request:**
 
 ```json
 {
@@ -175,19 +207,13 @@ Mapping by  `/categories`
 }
 ```
 
-### Get Categories
+### List Categories
 
 **GET** `/categories`
 
 ### Assign Category to Event
 
-**POST** `/events/{id}/categories`
-
-```json
-{
-  "category_id": "uuid"
-}
-```
+**POST** `/events/{id}/categories/{category_id}`
 
 ### Remove Category from Event
 
@@ -195,11 +221,11 @@ Mapping by  `/categories`
 
 ## Tags
 
-Mapping by `/tags`
-
 ### Create Tag
 
 **POST** `/tags`
+
+**Request:**
 
 ```json
 {
@@ -207,19 +233,13 @@ Mapping by `/tags`
 }
 ```
 
-### Get Tags
+### List Tags
 
 **GET** `/tags`
 
 ### Assign Tag to Event
 
-**POST** `/events/{id}/tags`
-
-```json
-{
-  "tag_id": "uuid"
-}
-```
+**POST** `/events/{id}/tags/{tag_id}`
 
 ### Remove Tag from Event
 
