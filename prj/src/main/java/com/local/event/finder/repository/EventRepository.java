@@ -22,9 +22,20 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             Double longitude
     );
 
+    boolean existsByTitleAndStartTimeAndEndTimeAndLatitudeAndLongitudeAndIdNot(
+            String title,
+            LocalDateTime startTime,
+            LocalDateTime endTime,
+            Double latitude,
+            Double longitude,
+            Long id
+    );
+
     List<Event> findByEventCategoryId(Long categoryId);
 
     List<Event> findByLocation(Double latitude, Double longitude, String country, String city);
 
     List<Event> findByEventTagId(Long tagId);
+
+    List<Event> findByCreatedById(Long userId);
 }

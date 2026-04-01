@@ -3,6 +3,7 @@ package com.local.event.finder.controller;
 import com.local.event.finder.logging.AppLogger;
 import com.local.event.finder.logging.LoggerFactory;
 import com.local.event.finder.model.dto.EventRequestDto;
+import com.local.event.finder.model.dto.EventResponseDto;
 import com.local.event.finder.model.entity.Event;
 import com.local.event.finder.service.EventService;
 import jakarta.validation.Valid;
@@ -35,7 +36,7 @@ public class EventController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Event create(@Valid @RequestBody EventRequestDto eventDto){
+    public EventResponseDto create(@Valid @RequestBody EventRequestDto eventDto){
         log.info("EventController:create");
         return eventService.create(eventDto);
     }
@@ -79,6 +80,6 @@ public class EventController {
     @ResponseStatus(HttpStatus.OK)
     public List<Event> getEventsByUserId(@PathVariable Long userId){
         log.info("EventController:getEventsByUserId");
-        return eventService.getEventByUser(userId);
+        return eventService.getEventsByUser(userId);
     }
 }
