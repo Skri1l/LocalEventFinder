@@ -83,6 +83,7 @@ public class Event {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_id",  nullable = false)
     private User createdBy;
+    // COMMENT: вопрос бля из чего мы собираем createdBy
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
