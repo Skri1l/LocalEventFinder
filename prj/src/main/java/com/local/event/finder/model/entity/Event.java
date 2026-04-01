@@ -11,6 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -45,13 +46,13 @@ public class Event {
     private String description;
 
     @Column(nullable = false)
-    @NotBlank
+    @NotNull
     @DecimalMin(value = "-90.0")
     @DecimalMax(value = "90.0")
     private Double latitude;
 
     @Column(nullable = false)
-    @NotBlank
+    @NotNull
     @DecimalMin(value = "-180.0")
     @DecimalMax(value = "180.0")
     private Double longitude;
@@ -63,11 +64,9 @@ public class Event {
     private String city;
 
     @Column(nullable = false)
-    @NotBlank
     private LocalDateTime startTime;
 
     @Column(nullable = false)
-    @NotBlank
     private LocalDateTime endTime;
 
     @Min(1)
@@ -83,16 +82,15 @@ public class Event {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_id",  nullable = false)
     private User createdBy;
-    // COMMENT: вопрос бля из чего мы собираем createdBy
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     @PastOrPresent
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "eventTags")
+    @OneToMany(mappedBy = "event")
     private Set<EventTag> eventTags;
 
-    @OneToMany(mappedBy = "eventCategory")
+    @OneToMany(mappedBy = "event")
     private Set<EventCategory> eventCategory;
 }
