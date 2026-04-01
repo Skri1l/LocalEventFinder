@@ -1,10 +1,8 @@
 package com.local.event.finder.repository;
 
 import com.local.event.finder.model.entity.Event;
-import com.local.event.finder.model.entity.EventCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -31,11 +29,11 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             Long id
     );
 
-    List<Event> findByEventCategoryId(Long categoryId);
+    List<Event> findByEventCategory_Category_Id(Long categoryId);
 
-    List<Event> findByLocation(Double latitude, Double longitude, String country, String city);
+    List<Event> findByLatitudeAndLongitudeAndCountryAndCity(Double latitude, Double longitude, String country, String city);
 
-    List<Event> findByEventTagId(Long tagId);
+    List<Event> findByEventTags_Tag_Id(Long tagId);
 
     List<Event> findByCreatedById(Long userId);
 }
