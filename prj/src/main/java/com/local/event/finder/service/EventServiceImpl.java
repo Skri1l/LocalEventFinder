@@ -3,21 +3,25 @@ package com.local.event.finder.service;
 import com.local.event.finder.model.dto.EventRequestDto;
 import com.local.event.finder.model.dto.EventResponseDto;
 import com.local.event.finder.model.entity.Event;
+import com.local.event.finder.model.entity.User;
 import com.local.event.finder.repository.EventRepository;
+import com.local.event.finder.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.Objects;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Service
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService{
 
     private final EventRepository eventRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -27,6 +31,10 @@ public class EventServiceImpl implements EventService{
                 eventDto.startTime(), eventDto.endTime(), eventDto.latitude(), eventDto.longitude())){
             throw new RuntimeException("This event already exists");
         }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User not found" +  username));
         Event event = new Event();
         event.setTitle(eventDto.title());
         event.setDescription(eventDto.description());
@@ -39,7 +47,7 @@ public class EventServiceImpl implements EventService{
         event.setMaxParticipants(eventDto.maxParticipants());
         event.setAgeRestriction(eventDto.ageRestriction());
         event.setImageUrl(eventDto.imageUrl());
-        //event.setCreatedBy(eventDto.cratedBy());
+        event.setCreatedBy(user);
         Event savedEvent = eventRepository.save(event);
         return new EventResponseDto(
                 savedEvent.getId(),

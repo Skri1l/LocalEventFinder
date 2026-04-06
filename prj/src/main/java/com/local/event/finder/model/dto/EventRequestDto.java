@@ -1,5 +1,6 @@
 package com.local.event.finder.model.dto;
 
+import com.local.event.finder.model.entity.User;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
@@ -10,6 +11,8 @@ import jakarta.validation.constraints.Size;
 import org.hibernate.validator.constraints.URL;
 import java.time.LocalDateTime;
 import java.util.Set;
+
+import static org.springframework.data.jpa.domain.AbstractAuditable_.createdBy;
 
 public record EventRequestDto(
 
