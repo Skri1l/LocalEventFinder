@@ -88,6 +88,8 @@ Authorization: Bearer <access_token>
 }
 ```
 
+**Requires authorization:** No
+
 **Response:**
 
 ```json
@@ -100,12 +102,31 @@ Authorization: Bearer <access_token>
 }
 ```
 
+### Logout
+
+**DELETE** `/auth/logout`
+
+**Request:**
+```json
+{
+
+}
+```
+
+**Requires authorization:** Yes
+
+**Responce:**
+```json
+{
+  "message": "Successfully logged out"
+}
+```
+
 ### Register User
 
 **POST** `/auth/register`
 
 **Request:**
-
 ```json
 {
   "username": "john_doe",
@@ -127,6 +148,8 @@ Authorization: Bearer <access_token>
   }
 }
 ```
+
+**Requires authorization:** No
 
 ## Users
 
