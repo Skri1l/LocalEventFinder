@@ -2,50 +2,66 @@
 
 ## Response Format
 
+There are only two types of responses to requests:
+- Data Responce
+- Error Responce
+
+### Data Responce
+
+For one entity:
 ```json
 {
-  "datetime": "2026-03-30T12:00:00Z",
   "data": {
-    "items": [],        // an array of objects (for lists) or a single object
-    "count": 1,         // number of items in the response (for a list)
-    "total": 1          // total number of items (for a list)
-  },
-  "error": null          // null if success, object if error
+    "username": "john_doe",
+    "email": "john@example.com",
+    "password": "StrongPassword123!",
+    "avatar_url": "https://example.com/avatar.png",
+    "age": 25
+  }
 }
 ```
 
-### Success Example
-
+For list of entities:
 ```json
 {
-  "datetime": "2026-03-30T12:00:00Z",
-  "data": {
-    "user": {
-      "id": "123",
+  "data": [
+    {
       "username": "john_doe",
       "email": "john@example.com",
-      "age": 25,
-      "avatar_url": "https://example.com/avatar.png"
+      "password": "StrongPassword123!",
+      "avatar_url": "https://example.com/avatar.png",
+      "age": 25
+    },
+    {
+      "username": "john_doe2",
+      "email": "john2@example.com",
+      "password": "StrongPassword123!",
+      "avatar_url": "https://example.com/avatar.png",
+      "age": 22
     }
-  },
-  "error": null
+  ]
 }
 ```
 
-### Error Example
+### Error Responce
 
 ```json
 {
-  "datetime": "2026-03-30T12:00:00Z",
-  "data": null,
   "error": {
     "code": 404,
-    "message": "User not found"
+    "message": "User not found",
+    "details": "User ID 123 not exists in data base"
   }
 }
 ```
 
 ## Authentication
+
+### Auth Header
+
+```
+Authorization: Bearer <access_token>
+```
 
 ### Login
 
@@ -64,7 +80,6 @@
 
 ```json
 {
-  "datetime": "...",
   "data": {
     "access_token": "jwt",
     "refresh_token": "jwt",
@@ -73,17 +88,9 @@
 }
 ```
 
-### Auth Header
-
-```
-Authorization: Bearer <access_token>
-```
-
-## Users
-
 ### Register User
 
-**POST** `/users`
+**POST** `/auth/register`
 
 **Request:**
 
@@ -96,6 +103,20 @@ Authorization: Bearer <access_token>
   "age": 25
 }
 ```
+
+**Response:**
+
+```json
+{
+  "data": {
+    "access_token": "jwt",
+    "refresh_token": "jwt",
+    "expires_in": 3600
+  }
+}
+```
+
+## Users
 
 ### Get User
 
@@ -171,19 +192,13 @@ Authorization: Bearer <access_token>
 
 **DELETE** `/events/{id}`
 
-### Event Status
-
-```json
-"status": "draft | active | cancelled | finished"
-```
-
 ## Event Participants
 
 ### Join Event
 
 **POST** `/events/{id}/participants`
 
-> The user is identified by the token, `user_id` is not transmitted.
+> The user is identified by the token (from header), `user_id` is not transmitted.
 
 ### Leave Event
 
@@ -193,7 +208,7 @@ Authorization: Bearer <access_token>
 
 **GET** `/events/{id}/participants`
 
-## 🏷 Categories
+## Categories
 
 ### Create Category
 
