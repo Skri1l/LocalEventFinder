@@ -122,6 +122,8 @@ Authorization: Bearer <access_token>
 
 **GET** `/users/{id}`
 
+**Requires authorization:** Yes
+
 ### Update User (Partial)
 
 **PATCH** `/users/{id}`
@@ -134,9 +136,13 @@ Authorization: Bearer <access_token>
 }
 ```
 
+**Requires authorization:** Yes - A user can only edit their own profile.
+
 ### Delete User
 
 **DELETE** `/users/{id}`
+
+**Requires authorization:** Yes - A user can only delete their own profile.
 
 ## Events
 
@@ -161,11 +167,15 @@ Authorization: Bearer <access_token>
 }
 ```
 
+**Requires authorization:** Yes
+
 > `created_by` tooks from tocken
 
 ### Get Event
 
 **GET** `/events/{id}`
+
+**Requires authorization:** Yes
 
 ### List Events
 
@@ -184,13 +194,19 @@ Authorization: Bearer <access_token>
 &offset=0
 ```
 
+**Requires authorization:** Yes
+
 ### Update Event
 
 **PATCH** `/events/{id}`
 
+**Requires authorization:** Yes - only user that created by could edit this event.
+
 ### Delete Event
 
 **DELETE** `/events/{id}`
+
+**Requires authorization:** Yes - only user that created by could delete this event.
 
 ## Event Participants
 
@@ -200,13 +216,19 @@ Authorization: Bearer <access_token>
 
 > The user is identified by the token (from header), `user_id` is not transmitted.
 
+**Requires authorization:** Yes
+
 ### Leave Event
 
 **DELETE** `/events/{id}/participants/me`
 
+**Requires authorization:** Yes
+
 ### Get Participants
 
 **GET** `/events/{id}/participants`
+
+**Requires authorization:** Yes
 
 ## Categories
 
@@ -222,17 +244,25 @@ Authorization: Bearer <access_token>
 }
 ```
 
+**Requires authorization:** Yes
+
 ### List Categories
 
 **GET** `/categories`
+
+**Requires authorization:** No
 
 ### Assign Category to Event
 
 **POST** `/events/{id}/categories/{category_id}`
 
+**Requires authorization:** Yes - only user that created by could edit this event.
+
 ### Remove Category from Event
 
 **DELETE** `/events/{id}/categories/{category_id}`
+
+**Requires authorization:** Yes - only user that created by could edit this event.
 
 ## Tags
 
@@ -248,14 +278,22 @@ Authorization: Bearer <access_token>
 }
 ```
 
+**Requires authorization:** Yes
+
 ### List Tags
 
 **GET** `/tags`
+
+**Requires authorization:** No
 
 ### Assign Tag to Event
 
 **POST** `/events/{id}/tags/{tag_id}`
 
+**Requires authorization:** Yes - only user that created by could edit this event.
+
 ### Remove Tag from Event
 
 **DELETE** `/events/{id}/tags/{tag_id}`
+
+**Requires authorization:** Yes - only user that created by could edit this event.
