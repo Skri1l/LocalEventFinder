@@ -55,6 +55,18 @@ For list of entities:
 }
 ```
 
+## Health
+
+**Get** `/health`
+
+If everything OK **Response:**
+
+```json
+{
+  "OK"
+}
+```
+
 ## Authentication
 
 ### Auth Header
