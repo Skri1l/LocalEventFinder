@@ -2,6 +2,7 @@ package com.local.event.finder.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.local.event.finder.model.dto.EventRequestDto;
+import com.local.event.finder.model.entity.Event;
 import com.local.event.finder.model.entity.User;
 import com.local.event.finder.repository.EventRepository;
 import com.local.event.finder.repository.UserRepository;
@@ -17,7 +18,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -185,7 +188,7 @@ public class EventControllerTest {
                 "testDescription",
                 60.0,
                 60.0,
-                "Amerika",
+                "country",
                 null,
                 LocalDateTime.of(2026,4,1,17,0),
                 LocalDateTime.of(2026,4,1,19,30),
@@ -211,7 +214,7 @@ public class EventControllerTest {
                 "testDescription",
                 60.0,
                 60.0,
-                "null",
+                "country",
                 "Kalas",
                 null,
                 LocalDateTime.of(2026,4,1,19,30),
@@ -237,7 +240,7 @@ public class EventControllerTest {
                 "testDescription",
                 60.0,
                 60.0,
-                "null",
+                "country",
                 "Kalas",
                 LocalDateTime.of(2026,4,1,17,0),
                 null,
@@ -263,7 +266,7 @@ public class EventControllerTest {
                 "testDescription",
                 60.0,
                 60.0,
-                "null",
+                "country",
                 "Kalas",
                 LocalDateTime.of(2026,4,1,17,0),
                 LocalDateTime.of(2026,4,1,19,30),
@@ -289,7 +292,7 @@ public class EventControllerTest {
                 "testDescription",
                 60.0,
                 60.0,
-                "null",
+                "country",
                 "Kalas",
                 LocalDateTime.of(2026,4,1,17,0),
                 LocalDateTime.of(2026,4,1,19,30),
@@ -315,7 +318,7 @@ public class EventControllerTest {
                 "testDescription",
                 60.0,
                 60.0,
-                "null",
+                "country",
                 "Kalas",
                 LocalDateTime.of(2026,4,1,17,0),
                 LocalDateTime.of(2026,4,1,19,30),
@@ -331,5 +334,32 @@ public class EventControllerTest {
                         .content(objectMapper.writeValueAsString(eventRequestDto)))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(username = "testuser")
+    void getEventByIdTestShouldReturnEvent() throws Exception {
+        User user = userRepository.findByUsername("testuser").orElseThrow();
+        Event event = new Event();
+        event.setTitle("newTest");
+        event.setDescription("newTestDescription");
+        event.setLatitude(60.0);
+        event.setLongitude(60.0);
+        event.setCountry("newCountry");
+        event.setCity("newCity");
+        event.setStartTime(LocalDateTime.of(2026, 4, 1, 17, 0));
+        event.setEndTime(LocalDateTime.of(2026, 4, 1, 19, 30));
+        event.setMaxParticipants(15);
+        event.setAgeRestriction(19);
+        event.setImageUrl("https://test.com/image.png");
+
+        Event savedEvent = eventRepository.save(event);
+
+        mockMvc.perform(get(EVENT_URL + "/{id}", savedEvent.getId()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("newTest"))
+                .andExpect(jsonPath("$.city").value("newCity"))
+                .andExpect(jsonPath("$.country").value("newCountry"));
     }
 }
