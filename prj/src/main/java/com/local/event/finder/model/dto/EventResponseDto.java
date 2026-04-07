@@ -1,8 +1,5 @@
 package com.local.event.finder.model.dto;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-
 import java.time.LocalDateTime;
 import java.util.Set;
 

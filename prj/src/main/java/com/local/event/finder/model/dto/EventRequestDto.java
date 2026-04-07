@@ -32,9 +32,11 @@ public record EventRequestDto(
         @DecimalMax(value = "180.0")
         Double longitude,
 
+        @NotBlank
         @Size(max = 100)
         String country,
 
+        @NotBlank
         @Size(max = 100)
         String city,
 
