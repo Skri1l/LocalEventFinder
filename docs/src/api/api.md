@@ -12,11 +12,7 @@ For one entity:
 ```json
 {
   "data": {
-    "username": "john_doe",
-    "email": "john@example.com",
-    "password": "StrongPassword123!",
-    "avatar_url": "https://example.com/avatar.png",
-    "age": 25
+    /* data responce body */
   }
 }
 ```
@@ -26,18 +22,10 @@ For list of entities:
 {
   "data": [
     {
-      "username": "john_doe",
-      "email": "john@example.com",
-      "password": "StrongPassword123!",
-      "avatar_url": "https://example.com/avatar.png",
-      "age": 25
+      /* data responce body */
     },
     {
-      "username": "john_doe2",
-      "email": "john2@example.com",
-      "password": "StrongPassword123!",
-      "avatar_url": "https://example.com/avatar.png",
-      "age": 22
+      /* data responce body */
     }
   ]
 }
@@ -59,11 +47,15 @@ For list of entities:
 
 **Get** `/health`
 
+**Requires authorization:** No
+
 If everything OK **Response:**
 
 ```json
 {
-  "OK"
+  "data": {
+    "status": "OK"
+  }
 }
 ```
 
@@ -79,6 +71,8 @@ Authorization: Bearer <access_token>
 
 **POST** `/auth/login`
 
+**Requires authorization:** No
+
 **Request:**
 
 ```json
@@ -87,8 +81,6 @@ Authorization: Bearer <access_token>
   "password": "password123"
 }
 ```
-
-**Requires authorization:** No
 
 **Response:**
 
@@ -106,25 +98,22 @@ Authorization: Bearer <access_token>
 
 **DELETE** `/auth/logout`
 
-**Request:**
-```json
-{
-
-}
-```
-
 **Requires authorization:** Yes
 
 **Responce:**
 ```json
 {
-  "message": "Successfully logged out"
+  "data": {
+    "status": "OK"
+  }
 }
 ```
 
 ### Register User
 
 **POST** `/auth/register`
+
+**Requires authorization:** No
 
 **Request:**
 ```json
@@ -149,8 +138,6 @@ Authorization: Bearer <access_token>
 }
 ```
 
-**Requires authorization:** No
-
 ## Users
 
 ### Get User
@@ -159,9 +146,28 @@ Authorization: Bearer <access_token>
 
 **Requires authorization:** Yes
 
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "username": "john_doe",
+      "email": "john@example.com",
+      "avatar_url": "https://example.com/avatar.png",
+      "age": 25
+    },
+    /* etc. */
+  ]
+}
+```
+
+
 ### Update User (Partial)
 
 **PATCH** `/users/{id}`
+
+**Requires authorization:** Yes - A user can only edit their own profile.
 
 **Request Example:**
 
@@ -171,7 +177,20 @@ Authorization: Bearer <access_token>
 }
 ```
 
-**Requires authorization:** Yes - A user can only edit their own profile.
+**Response:**
+
+```json
+{
+  "data": 
+  {
+    "username": "john_doe",
+    "email": "john@example.com",
+    "password": "StrongPassword123!",
+    "avatar_url": "https://example.com/avatar.png",
+    "age": 25
+  }
+}
+```
 
 ### Delete User
 
@@ -179,11 +198,23 @@ Authorization: Bearer <access_token>
 
 **Requires authorization:** Yes - A user can only delete their own profile.
 
+If everything OK **Response:**
+
+```json
+{
+  "data": {
+    "status": "OK"
+  }
+}
+```
+
 ## Events
 
 ### Create Event
 
 **POST** `/events`
+
+**Requires authorization:** Yes
 
 **Request:**
 
@@ -198,13 +229,22 @@ Authorization: Bearer <access_token>
   "max_participants": 100,
   "age_restriction": 18,
   "image_url": "...",
-  "status": "active"
+  "status": "upcoming",
+  "user_id": 27
 }
 ```
 
-**Requires authorization:** Yes
-
+> for first versions uses user_id for created_by -> in future removes from api   
 > `created_by` tooks from tocken
+
+**Responce:**
+```json
+{
+  "data": {
+    "status": "OK"
+  }
+}
+```
 
 ### Get Event
 
@@ -212,9 +252,34 @@ Authorization: Bearer <access_token>
 
 **Requires authorization:** Yes
 
+**Responce:**
+
+```json
+{
+  "data":
+  {
+    "id": 12,
+    "title": "Music Festival",
+    "description": "Outdoor event",
+    "latitude": 54.6872,
+    "longitude": 25.2797,
+    "start_time": "2026-06-01T10:00:00Z",
+    "end_time": "2026-06-01T18:00:00Z",
+    "max_participants": 100,
+    "age_restriction": 18,
+    "image_url": "...",
+    "status": "upcoming",
+    "created_by": 27,
+    "created_at": "2026-06-01T10:00:00Z"
+  }
+}
+```
+
 ### List Events
 
 **GET** `/events`
+
+**Requires authorization:** Yes
 
 **Query parameters:**
 
@@ -229,7 +294,30 @@ Authorization: Bearer <access_token>
 &offset=0
 ```
 
-**Requires authorization:** Yes
+**Responce:**
+
+```json
+{
+  "data": [
+    {
+      "id": 12,
+      "title": "Music Festival",
+      "description": "Outdoor event",
+      "latitude": 54.6872,
+      "longitude": 25.2797,
+      "start_time": "2026-06-01T10:00:00Z",
+      "end_time": "2026-06-01T18:00:00Z",
+      "max_participants": 100,
+      "age_restriction": 18,
+      "image_url": "...",
+      "status": "upcoming",
+      "created_by": 27,
+      "created_at": "2026-06-01T10:00:00Z"
+    },
+    /* etc. */
+  ]
+}
+```
 
 ### Update Event
 
@@ -237,11 +325,42 @@ Authorization: Bearer <access_token>
 
 **Requires authorization:** Yes - only user that created by could edit this event.
 
+```json
+{
+  "data":
+  {
+    "id": 12,
+    "title": "Music Festival",
+    "description": "Outdoor event",
+    "latitude": 54.6872,
+    "longitude": 25.2797,
+    "start_time": "2026-06-01T10:00:00Z",
+    "end_time": "2026-06-01T18:00:00Z",
+    "max_participants": 100,
+    "age_restriction": 18,
+    "image_url": "...",
+    "status": "upcoming",
+    "created_by": 27,
+    "created_at": "2026-06-01T10:00:00Z"
+  }
+}
+```
+
 ### Delete Event
 
 **DELETE** `/events/{id}`
 
 **Requires authorization:** Yes - only user that created by could delete this event.
+
+If everything OK **Response:**
+
+```json
+{
+  "data": {
+    "status": "OK"
+  }
+}
+```
 
 ## Event Participants
 
@@ -249,9 +368,19 @@ Authorization: Bearer <access_token>
 
 **POST** `/events/{id}/participants`
 
+**Requires authorization:** Yes
+
 > The user is identified by the token (from header), `user_id` is not transmitted.
 
-**Requires authorization:** Yes
+If everything OK **Response:**
+
+```json
+{
+  "data": {
+    "status": "OK"
+  }
+}
+```
 
 ### Leave Event
 
@@ -259,11 +388,37 @@ Authorization: Bearer <access_token>
 
 **Requires authorization:** Yes
 
+If everything OK **Response:**
+
+```json
+{
+  "data": {
+    "status": "OK"
+  }
+}
+```
+
 ### Get Participants
 
 **GET** `/events/{id}/participants`
 
 **Requires authorization:** Yes
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "username": "john_doe",
+      "email": "john@example.com",
+      "avatar_url": "https://example.com/avatar.png",
+      "age": 25
+    },
+    /* etc. */
+  ]
+}
+```
 
 ## Categories
 
@@ -281,11 +436,34 @@ Authorization: Bearer <access_token>
 
 **Requires authorization:** Yes
 
+If everything OK **Response:**
+
+```json
+{
+  "data": {
+    "status": "OK"
+  }
+}
+```
+
 ### List Categories
 
 **GET** `/categories`
 
 **Requires authorization:** No
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "name": "Sports"
+    },
+    /* etc. */
+  ]
+}
+```
 
 ### Assign Category to Event
 
@@ -293,11 +471,31 @@ Authorization: Bearer <access_token>
 
 **Requires authorization:** Yes - only user that created by could edit this event.
 
+If everything OK **Response:**
+
+```json
+{
+  "data": {
+    "status": "OK"
+  }
+}
+```
+
 ### Remove Category from Event
 
 **DELETE** `/events/{id}/categories/{category_id}`
 
 **Requires authorization:** Yes - only user that created by could edit this event.
+
+If everything OK **Response:**
+
+```json
+{
+  "data": {
+    "status": "OK"
+  }
+}
+```
 
 ## Tags
 
@@ -315,11 +513,34 @@ Authorization: Bearer <access_token>
 
 **Requires authorization:** Yes
 
+If everything OK **Response:**
+
+```json
+{
+  "data": {
+    "status": "OK"
+  }
+}
+```
+
 ### List Tags
 
 **GET** `/tags`
 
 **Requires authorization:** No
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "name": "Outdoor"
+    },
+    /* etc. */
+  ]
+}
+```
 
 ### Assign Tag to Event
 
@@ -327,8 +548,28 @@ Authorization: Bearer <access_token>
 
 **Requires authorization:** Yes - only user that created by could edit this event.
 
+If everything OK **Response:**
+
+```json
+{
+  "data": {
+    "status": "OK"
+  }
+}
+```
+
 ### Remove Tag from Event
 
 **DELETE** `/events/{id}/tags/{tag_id}`
 
 **Requires authorization:** Yes - only user that created by could edit this event.
+
+If everything OK **Response:**
+
+```json
+{
+  "data": {
+    "status": "OK"
+  }
+}
+```
