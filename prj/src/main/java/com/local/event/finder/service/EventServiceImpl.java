@@ -81,13 +81,16 @@ public class EventServiceImpl implements EventService{
 
     @Override
     @Transactional(readOnly = true)
-    public List<Event> getAll() {
-        return eventRepository.findAll();
+    public List<EventResponseDto> getAll() {
+        return eventRepository.findAll()
+                .stream()
+                .map(this::toResponseDto)
+                .toList();
     }
 
     @Override
     @Transactional
-    public Event update(Long id, EventRequestDto eventDto) {
+    public EventResponseDto update(Long id, EventRequestDto eventDto) {
         Objects.requireNonNull(id, "Event id cannot be null");
         Objects.requireNonNull(eventDto, "Event request cannot be null");
         if(eventRepository.existsByTitleAndStartTimeAndEndTimeAndLatitudeAndLongitudeAndIdNot(
@@ -115,7 +118,8 @@ public class EventServiceImpl implements EventService{
         existingEvent.setAgeRestriction(eventDto.ageRestriction());
         existingEvent.setImageUrl(eventDto.imageUrl());
         existingEvent.setCreatedBy(user);
-        return eventRepository.save(existingEvent);
+        Event savedEvent = eventRepository.save(existingEvent);
+        return toResponseDto(savedEvent);
     }
 
     @Override
@@ -128,9 +132,12 @@ public class EventServiceImpl implements EventService{
 
     @Override
     @Transactional(readOnly = true)
-    public List<Event> getEventsByUser(Long userId) {
+    public List<EventResponseDto> getEventsByUser(Long userId) {
         Objects.requireNonNull(userId, "User id cannot be null");
-        return this.eventRepository.findByCreatedById(userId);
+        return eventRepository.findByCreatedById(userId)
+                .stream()
+                .map(this::toResponseDto)
+                .toList();
     }
 
     private EventResponseDto toResponseDto(Event event) {
@@ -151,5 +158,14 @@ public class EventServiceImpl implements EventService{
                 null,
                 event.getCreatedAt()
         );
+    }
+
+    @Override
+    @Transactional
+    public EventResponseDto getEventResponseById(Long id) {
+        Objects.requireNonNull(id, "Event id cannot be null");
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Event with id " + id + " not found"));
+        return toResponseDto(event);
     }
 }

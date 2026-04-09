@@ -43,9 +43,9 @@ public class EventController {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Event getEventById(@PathVariable Long id){
+    public EventResponseDto getEventById(@PathVariable Long id){
         log.info("EventController:findById");
-        return eventService.getById(id);
+        return eventService.getEventResponseById(id);
     }
 
     @GetMapping("/title")
@@ -57,14 +57,14 @@ public class EventController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<Event> getAllEvents(){
+    public List<EventResponseDto> getAllEvents(){
         log.info("EventController:getAllEvents");
         return eventService.getAll();
     }
 
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Event updateEvent(@PathVariable Long id, @Valid @RequestBody EventRequestDto eventDto){
+    public EventResponseDto updateEvent(@PathVariable Long id, @Valid @RequestBody EventRequestDto eventDto){
         log.info("EventController:updateEvent");
         return eventService.update(id, eventDto);
     }
@@ -78,7 +78,7 @@ public class EventController {
 
     @GetMapping("/user/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public List<Event> getEventsByUserId(@PathVariable Long userId){
+    public List<EventResponseDto> getEventsByUserId(@PathVariable Long userId){
         log.info("EventController:getEventsByUserId");
         return eventService.getEventsByUser(userId);
     }

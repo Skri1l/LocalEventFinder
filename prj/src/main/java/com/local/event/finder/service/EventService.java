@@ -14,11 +14,13 @@ public interface EventService {
 
     List<EventResponseDto> getByTitle(String title);
 
-    List<Event> getAll();
+    List<EventResponseDto> getAll();
 
-    Event update(Long id, EventRequestDto eventDto);
+    EventResponseDto update(Long id, EventRequestDto eventDto);
 
     void delete(Long id);
 
-    List<Event> getEventsByUser(Long userId);
+    List<EventResponseDto> getEventsByUser(Long userId);
+
+    EventResponseDto getEventResponseById(Long id);
 }
