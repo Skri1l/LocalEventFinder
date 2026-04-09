@@ -75,10 +75,12 @@ public class EventServiceImpl implements EventService{
     }
 
     @Override
-    public Event getByTitle(String title) {
+    @Transactional(readOnly = true)
+    public List<EventResponseDto> getByTitle(String title) {
         Objects.requireNonNull(title, "Event title cannot be null");
-        return eventRepository.findByTitle(title)
-                .orElseThrow(() -> new EntityNotFoundException("Event with title " + title + " not found"));
+        return eventRepository.findAllByTitle(title).stream()
+                .map(this::toResponseDto)
+                .toList();
     }
 
     @Override
@@ -119,5 +121,25 @@ public class EventServiceImpl implements EventService{
     public List<Event> getEventsByUser(Long userId) {
         Objects.requireNonNull(userId, "User id cannot be null");
         return this.eventRepository.findByCreatedById(userId);
+    }
+
+    private EventResponseDto toResponseDto(Event event) {
+        return new EventResponseDto(
+                event.getId(),
+                event.getTitle(),
+                event.getDescription(),
+                event.getLatitude(),
+                event.getLongitude(),
+                event.getCountry(),
+                event.getCity(),
+                event.getStartTime(),
+                event.getEndTime(),
+                event.getMaxParticipants(),
+                event.getAgeRestriction(),
+                event.getImageUrl(),
+                null,
+                null,
+                event.getCreatedAt()
+        );
     }
 }

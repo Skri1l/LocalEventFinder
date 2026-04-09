@@ -15,11 +15,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDateTime;
 import org.springframework.security.test.context.support.WithMockUser;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -415,7 +414,8 @@ public class EventControllerTest {
         eventRepository.save(firstEvent);
         eventRepository.save(secondEvent);
 
-        mockMvc.perform(get(EVENT_URL + "/title/{title}", "newTest"))
+        mockMvc.perform(get(EVENT_URL + "/title")
+                        .param("title", "newTest"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[*].title", everyItem(is("newTest"))))
@@ -425,7 +425,8 @@ public class EventControllerTest {
     @Test
     @WithMockUser(username = "testuser")
     void getEventsByTitleShouldReturnEmptyListWhenEventDoesNotExist() throws Exception {
-        mockMvc.perform(get(EVENT_URL + "/title/{title}", "notFoundTet"))
+        mockMvc.perform(get(EVENT_URL + "/title")
+                        .param("title", "notFoundTest"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
@@ -518,10 +519,11 @@ public class EventControllerTest {
         newEvent.setImageUrl("https://newtest.com/image.png");
         newEvent.setCreatedBy(user);
 
-        mockMvc.perform(put(EVENT_URL + "/{id}", id)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(newEvent)))
-                .andExpect(status().isNoContent());
+        mockMvc.perform(patch(EVENT_URL + "/{id}", id)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newEvent)))
+                .andExpect(status().isOk());
 
         Event updatedEvent = eventRepository.findById(id).orElseThrow();
 

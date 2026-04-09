@@ -50,7 +50,7 @@ public class EventController {
 
     @GetMapping("/title")
     @ResponseStatus(HttpStatus.OK)
-    public Event getEventByTitle(@RequestParam String title){
+    public List<EventResponseDto> getEventsByTitle(@RequestParam String title){
         log.info("EventController:getEventByTitle");
         return eventService.getByTitle(title);
     }

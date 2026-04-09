@@ -12,7 +12,7 @@ public interface EventService {
 
     Event getById(Long id);
 
-    Event getByTitle(String title);
+    List<EventResponseDto> getByTitle(String title);
 
     List<Event> getAll();
 
