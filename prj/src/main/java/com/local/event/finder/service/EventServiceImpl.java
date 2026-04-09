@@ -3,13 +3,14 @@ package com.local.event.finder.service;
 import com.local.event.finder.model.dto.EventRequestDto;
 import com.local.event.finder.model.dto.EventResponseDto;
 import com.local.event.finder.model.entity.Event;
+import com.local.event.finder.model.entity.User;
 import com.local.event.finder.repository.EventRepository;
+import com.local.event.finder.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.Objects;
 
@@ -18,6 +19,7 @@ import java.util.Objects;
 public class EventServiceImpl implements EventService{
 
     private final EventRepository eventRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -27,6 +29,8 @@ public class EventServiceImpl implements EventService{
                 eventDto.startTime(), eventDto.endTime(), eventDto.latitude(), eventDto.longitude())){
             throw new RuntimeException("This event already exists");
         }
+        User user = userRepository.findById(eventDto.userId()).orElseThrow(() ->
+                new EntityNotFoundException("User not found"));
         Event event = new Event();
         event.setTitle(eventDto.title());
         event.setDescription(eventDto.description());
@@ -39,7 +43,7 @@ public class EventServiceImpl implements EventService{
         event.setMaxParticipants(eventDto.maxParticipants());
         event.setAgeRestriction(eventDto.ageRestriction());
         event.setImageUrl(eventDto.imageUrl());
-        //event.setCreatedBy(eventDto.cratedBy());
+        event.setCreatedBy(user);
         Event savedEvent = eventRepository.save(event);
         return new EventResponseDto(
                 savedEvent.getId(),
@@ -67,21 +71,26 @@ public class EventServiceImpl implements EventService{
     }
 
     @Override
-    public Event getByTitle(String title) {
+    @Transactional(readOnly = true)
+    public List<EventResponseDto> getByTitle(String title) {
         Objects.requireNonNull(title, "Event title cannot be null");
-        return eventRepository.findByTitle(title)
-                .orElseThrow(() -> new EntityNotFoundException("Event with title " + title + " not found"));
+        return eventRepository.findAllByTitle(title).stream()
+                .map(this::toResponseDto)
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Event> getAll() {
-        return eventRepository.findAll();
+    public List<EventResponseDto> getAll() {
+        return eventRepository.findAll()
+                .stream()
+                .map(this::toResponseDto)
+                .toList();
     }
 
     @Override
     @Transactional
-    public Event update(Long id, EventRequestDto eventDto) {
+    public EventResponseDto update(Long id, EventRequestDto eventDto) {
         Objects.requireNonNull(id, "Event id cannot be null");
         Objects.requireNonNull(eventDto, "Event request cannot be null");
         if(eventRepository.existsByTitleAndStartTimeAndEndTimeAndLatitudeAndLongitudeAndIdNot(
@@ -94,8 +103,23 @@ public class EventServiceImpl implements EventService{
             throw new IllegalArgumentException("This event already exists");
         }
         Event existingEvent = getById(id);
-        BeanUtils.copyProperties(eventDto, existingEvent, "id");
-        return eventRepository.save(existingEvent);
+        User user = userRepository.findById(eventDto.userId())
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + eventDto.userId()));
+
+        existingEvent.setTitle(eventDto.title());
+        existingEvent.setDescription(eventDto.description());
+        existingEvent.setLatitude(eventDto.latitude());
+        existingEvent.setLongitude(eventDto.longitude());
+        existingEvent.setCountry(eventDto.country());
+        existingEvent.setCity(eventDto.city());
+        existingEvent.setStartTime(eventDto.startTime());
+        existingEvent.setEndTime(eventDto.endTime());
+        existingEvent.setMaxParticipants(eventDto.maxParticipants());
+        existingEvent.setAgeRestriction(eventDto.ageRestriction());
+        existingEvent.setImageUrl(eventDto.imageUrl());
+        existingEvent.setCreatedBy(user);
+        Event savedEvent = eventRepository.save(existingEvent);
+        return toResponseDto(savedEvent);
     }
 
     @Override
@@ -108,8 +132,40 @@ public class EventServiceImpl implements EventService{
 
     @Override
     @Transactional(readOnly = true)
-    public List<Event> getEventsByUser(Long userId) {
+    public List<EventResponseDto> getEventsByUser(Long userId) {
         Objects.requireNonNull(userId, "User id cannot be null");
-        return this.eventRepository.findByCreatedById(userId);
+        return eventRepository.findByCreatedById(userId)
+                .stream()
+                .map(this::toResponseDto)
+                .toList();
+    }
+
+    private EventResponseDto toResponseDto(Event event) {
+        return new EventResponseDto(
+                event.getId(),
+                event.getTitle(),
+                event.getDescription(),
+                event.getLatitude(),
+                event.getLongitude(),
+                event.getCountry(),
+                event.getCity(),
+                event.getStartTime(),
+                event.getEndTime(),
+                event.getMaxParticipants(),
+                event.getAgeRestriction(),
+                event.getImageUrl(),
+                null,
+                null,
+                event.getCreatedAt()
+        );
+    }
+
+    @Override
+    @Transactional
+    public EventResponseDto getEventResponseById(Long id) {
+        Objects.requireNonNull(id, "Event id cannot be null");
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Event with id " + id + " not found"));
+        return toResponseDto(event);
     }
 }
