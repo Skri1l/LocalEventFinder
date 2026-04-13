@@ -18,10 +18,4 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
-
-    @PostMapping("/register")
-    @ResponseStatus(HttpStatus.CREATED)
-    public UserResponseDto register(@Valid @RequestBody UserRequestDto dto){
-        return userService.register(dto);
-    }
 }
