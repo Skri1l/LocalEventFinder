@@ -4,7 +4,6 @@ import com.local.event.finder.logging.AppLogger;
 import com.local.event.finder.logging.LoggerFactory;
 import com.local.event.finder.model.dto.EventRequestDto;
 import com.local.event.finder.model.dto.EventResponseDto;
-import com.local.event.finder.model.entity.Event;
 import com.local.event.finder.service.EventService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

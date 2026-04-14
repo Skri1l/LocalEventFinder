@@ -2,8 +2,8 @@ package com.local.event.finder.authentication;
 
 import com.local.event.finder.authentication.dto.AuthResponse;
 import com.local.event.finder.authentication.dto.LoginRequest;
+import com.local.event.finder.model.dto.RefreshRequestDto;
 import com.local.event.finder.model.dto.UserRequestDto;
-import com.local.event.finder.model.dto.UserResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,7 +27,12 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserResponseDto register(@Valid @RequestBody UserRequestDto dto) {
+    public AuthResponse register(@Valid @RequestBody UserRequestDto dto) {
         return authService.register(dto);
+    }
+
+    @PostMapping("/refresh")
+    public AuthResponse refresh(@Valid @RequestBody RefreshRequestDto dto){
+        return authService.refresh(dto);
     }
 }

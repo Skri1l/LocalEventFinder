@@ -1,6 +1,8 @@
 package com.local.event.finder.authentication.dto;
 
 public record AuthResponse(
-        String token
+        String accessToken,
+        String refreshToken,
+        Long accessTokenExpiresIn
 ) {
 }
