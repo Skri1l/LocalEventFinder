@@ -6,5 +6,4 @@ import com.local.event.finder.model.entity.User;
 
 public interface UserService {
 
-    UserResponseDto register(UserRequestDto userDto);
 }
