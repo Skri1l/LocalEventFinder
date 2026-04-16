@@ -8,9 +8,10 @@ import com.local.event.finder.repository.EventRepository;
 import com.local.event.finder.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.List;
 import java.util.Objects;
 
@@ -29,8 +30,10 @@ public class EventServiceImpl implements EventService{
                 eventDto.startTime(), eventDto.endTime(), eventDto.latitude(), eventDto.longitude())){
             throw new RuntimeException("This event already exists");
         }
-        User user = userRepository.findById(eventDto.userId()).orElseThrow(() ->
-                new EntityNotFoundException("User not found"));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
         Event event = new Event();
         event.setTitle(eventDto.title());
         event.setDescription(eventDto.description());
@@ -103,9 +106,6 @@ public class EventServiceImpl implements EventService{
             throw new IllegalArgumentException("This event already exists");
         }
         Event existingEvent = getById(id);
-        User user = userRepository.findById(eventDto.userId())
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + eventDto.userId()));
-
         existingEvent.setTitle(eventDto.title());
         existingEvent.setDescription(eventDto.description());
         existingEvent.setLatitude(eventDto.latitude());
@@ -117,7 +117,6 @@ public class EventServiceImpl implements EventService{
         existingEvent.setMaxParticipants(eventDto.maxParticipants());
         existingEvent.setAgeRestriction(eventDto.ageRestriction());
         existingEvent.setImageUrl(eventDto.imageUrl());
-        existingEvent.setCreatedBy(user);
         Event savedEvent = eventRepository.save(existingEvent);
         return toResponseDto(savedEvent);
     }

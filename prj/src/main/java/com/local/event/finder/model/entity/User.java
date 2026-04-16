@@ -1,6 +1,5 @@
 package com.local.event.finder.model.entity;
 
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
