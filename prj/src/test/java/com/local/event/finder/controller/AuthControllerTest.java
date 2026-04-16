@@ -158,11 +158,12 @@ public class AuthControllerTest {
 
     @Test
     void shouldReturnBadRequest_whenEmailIsNull() throws Exception {
-        Map<String, Object> request = Map.of(
-                "username", GOOD_USERNAME,
-                "password", GOOD_PASSWORD,
-                "avatar_url", GOOD_AVATAR_URL,
-                "age", GOOD_AGE
+        Map<String, Object> request = getRequest(
+                GOOD_USERNAME,
+                null,
+                GOOD_PASSWORD,
+                GOOD_AVATAR_URL,
+                GOOD_AGE
         );
 
         mockMvc.perform(post(REGISTER_URL)
@@ -192,5 +193,41 @@ public class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenBodyIsEmpty() throws Exception {
+        mockMvc.perform(post(REGISTER_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(""))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldFailWhenRequiredFieldsAreMissing() throws Exception {
+        Map<String, Object> request = Map.of(
+                "email", "john@example.com"
+        );
+
+        mockMvc.perform(post(REGISTER_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldFailWhenFieldsAreNull() throws Exception {
+        Map<String, Object> request = getRequest(
+                null,
+                null,
+                null,
+                null,
+                0
+        );
+
+        mockMvc.perform(post(REGISTER_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
     }
 }
