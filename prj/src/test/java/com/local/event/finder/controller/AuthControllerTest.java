@@ -2,6 +2,7 @@ package com.local.event.finder.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.local.event.finder.repository.RefreshTokenRepository;
 import com.local.event.finder.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,8 +35,15 @@ public class AuthControllerTest {
     @Autowired
     private UserRepository userRepository;
 
+    /**
+     * In test uses only for cleaning all users in test database.
+     */
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
+
     @BeforeEach
     void clean() {
+        refreshTokenRepository.deleteAll();
         userRepository.deleteAll();
     }
 
