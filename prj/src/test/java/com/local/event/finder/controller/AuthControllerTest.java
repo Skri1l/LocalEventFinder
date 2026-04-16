@@ -23,6 +23,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 public class AuthControllerTest {
+    private static final String REGISTER_URL = "/auth/register";
+    private static final String ROOT_NAME = "data";
+    private static final String GOOD_USERNAME = "GoodUsername";
+    private static final String GOOD_EMAIL = "GoodEmail@exmaple.com";
+    private static final String GOOD_PASSWORD = "av2bB123?0";
+    private static final String GOOD_AVATAR_URL = "https://example.com/avatar.png";
+    private static final int GOOD_AGE = 25;
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -47,27 +55,31 @@ public class AuthControllerTest {
         userRepository.deleteAll();
     }
 
+    static Map<String, Object> getRequest(String username, String email, String password, String avatarUrl, int age) {
+        return Map.of(
+                "username", username,
+                "email", email,
+                "password", password,
+                "avatar_url", avatarUrl,
+                "age", age
+        );
+    }
+
     @Test
     void shouldRegisterUserSuccessfully() throws Exception {
-        Map<String, Object> request = Map.of(
-                "username", "testUsername",
-                "email", "john3@example.com",
-                "password", "av2bB123?0",
-                "avatar_url", "https://example.com/avatar.png",
-                "age", 25
-        );
+        Map<String, Object> request = getRequest(GOOD_USERNAME, GOOD_EMAIL, GOOD_PASSWORD, GOOD_AVATAR_URL, GOOD_AGE);
 
-        MvcResult result = mockMvc.perform(post("/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andReturn();
+        MvcResult result = mockMvc.perform(post(REGISTER_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isCreated())
+        .andReturn();
 
         String json = result.getResponse().getContentAsString();
         JsonNode root = objectMapper.readTree(json);
 
-        JsonNode data = root.get("data");
-        assertNotNull(data, "Response should have field 'data'");
+        JsonNode data = root.get(ROOT_NAME);
+        assertNotNull(data, "Response should have field '" + ROOT_NAME + "'");
 
         assertTrue(data.has("access_token"),
                 "Answer doesn't have access_token");
