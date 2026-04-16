@@ -91,4 +91,106 @@ public class AuthControllerTest {
         assertTrue(expiresIn > 0,
                 "expires_in should be > 0, but was: " + expiresIn);
     }
+
+    @Test
+    void shouldReturnBadRequest_whenEmailIsInvalid() throws Exception {
+        Map<String, Object> request = getRequest(
+                GOOD_USERNAME,
+                "invalid-email",
+                GOOD_PASSWORD,
+                GOOD_AVATAR_URL,
+                GOOD_AGE
+        );
+
+        mockMvc.perform(post(REGISTER_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenPasswordTooShort() throws Exception {
+        Map<String, Object> request = getRequest(
+                GOOD_USERNAME,
+                GOOD_EMAIL,
+                "Ab1", // too short
+                GOOD_AVATAR_URL,
+                GOOD_AGE
+        );
+
+        mockMvc.perform(post(REGISTER_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenPasswordMissingUppercase() throws Exception {
+        Map<String, Object> request = getRequest(
+                GOOD_USERNAME,
+                GOOD_EMAIL,
+                "password123!", // no uppercase
+                GOOD_AVATAR_URL,
+                GOOD_AGE
+        );
+
+        mockMvc.perform(post(REGISTER_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenPasswordMissingDigit() throws Exception {
+        Map<String, Object> request = getRequest(
+                GOOD_USERNAME,
+                GOOD_EMAIL,
+                "Password!!!", // no digit
+                GOOD_AVATAR_URL,
+                GOOD_AGE
+        );
+
+        mockMvc.perform(post(REGISTER_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenEmailIsNull() throws Exception {
+        Map<String, Object> request = Map.of(
+                "username", GOOD_USERNAME,
+                "password", GOOD_PASSWORD,
+                "avatar_url", GOOD_AVATAR_URL,
+                "age", GOOD_AGE
+        );
+
+        mockMvc.perform(post(REGISTER_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnConflict_whenUserAlreadyExists() throws Exception {
+        Map<String, Object> request = getRequest(
+                GOOD_USERNAME,
+                GOOD_EMAIL,
+                GOOD_PASSWORD,
+                GOOD_AVATAR_URL,
+                GOOD_AGE
+        );
+
+        // first registration
+        mockMvc.perform(post(REGISTER_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated());
+
+        // second registration with same email
+        mockMvc.perform(post(REGISTER_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict());
+    }
 }
