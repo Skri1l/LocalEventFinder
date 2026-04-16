@@ -3,7 +3,7 @@ services:
     image: postgres:16
     restart: always
     environment:
-      POSTGRES_DB: event_finder_test
+      POSTGRES_DB: ${POSTGRES_DB_TEST}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
@@ -22,7 +22,7 @@ services:
       postgres-test:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-test:5432/event_finder_test
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL_TEST}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
