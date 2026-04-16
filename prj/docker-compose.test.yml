@@ -1,7 +1,6 @@
 services:
   postgres-test:
     image: postgres:16
-    container_name: event-finder-postgres-test
     restart: always
     environment:
       POSTGRES_DB: event_finder_test
@@ -19,12 +18,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.test
-    container_name: event-finder-test
     depends_on:
       postgres-test:
         condition: service_healthy
     environment:
-      SPRING_PROFILES_ACTIVE: test
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-test:5432/event_finder_test
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
