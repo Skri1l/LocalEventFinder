@@ -2,9 +2,8 @@ package com.local.event.finder.authentication;
 
 import com.local.event.finder.authentication.dto.AuthResponse;
 import com.local.event.finder.authentication.dto.LoginRequest;
-import com.local.event.finder.authentication.dto.MessageDto;
-import com.local.event.finder.model.dto.RefreshRequestDto;
-import com.local.event.finder.model.dto.UserRequestDto;
+import com.local.event.finder.refreshToken.RefreshRequestDto;
+import com.local.event.finder.user.UserRequestDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

@@ -1,11 +1,11 @@
 //package com.local.event.finder.controller;
 //
 //import com.fasterxml.jackson.databind.ObjectMapper;
-//import com.local.event.finder.model.dto.EventRequestDto;
-//import com.local.event.finder.model.entity.Event;
-//import com.local.event.finder.model.entity.User;
-//import com.local.event.finder.repository.EventRepository;
-//import com.local.event.finder.repository.UserRepository;
+//import com.local.event.finder.event.EventRequestDto;
+//import com.local.event.finder.event.Event;
+//import com.local.event.finder.user.User;
+//import com.local.event.finder.event.EventRepository;
+//import com.local.event.finder.user.UserRepository;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.Test;
 //import org.springframework.beans.factory.annotation.Autowired;
