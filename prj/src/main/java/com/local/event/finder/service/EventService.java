@@ -1,5 +1,7 @@
 package com.local.event.finder.service;
 
+import com.local.event.finder.api.ApiResponseDto;
+import com.local.event.finder.model.dto.EventParticipantResponseDto;
 import com.local.event.finder.model.dto.EventRequestDto;
 import com.local.event.finder.model.dto.EventResponseDto;
 import com.local.event.finder.model.entity.Event;
@@ -8,11 +10,9 @@ import java.util.List;
 
 public interface EventService {
 
-    EventResponseDto create(EventRequestDto eventDto);
+    void create(EventRequestDto eventDto);
 
     Event getById(Long id);
-
-    List<EventResponseDto> getByTitle(String title);
 
     List<EventResponseDto> getAll();
 
@@ -20,7 +20,15 @@ public interface EventService {
 
     void delete(Long id);
 
-    List<EventResponseDto> getEventsByUser(Long userId);
-
     EventResponseDto getEventResponseById(Long id);
+
+    void joinEvent(Long eventId);
+
+    void leaveEvent(Long eventId);
+
+    List<EventParticipantResponseDto> getParticipants(Long eventId);
+
+    void assignCategory(Long eventId, Long categoryId);
+
+    void removeCategory(Long eventId, Long categoryId);
 }
