@@ -1,7 +1,7 @@
 package com.local.event.finder.security;
 
-import com.local.event.finder.model.entity.User;
-import com.local.event.finder.repository.UserRepository;
+import com.local.event.finder.user.User;
+import com.local.event.finder.user.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
