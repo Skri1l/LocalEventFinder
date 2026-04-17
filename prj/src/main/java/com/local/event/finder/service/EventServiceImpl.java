@@ -1,9 +1,16 @@
 package com.local.event.finder.service;
 
+import com.local.event.finder.category.CategoryRepository;
+import com.local.event.finder.model.dto.EventParticipantResponseDto;
 import com.local.event.finder.model.dto.EventRequestDto;
 import com.local.event.finder.model.dto.EventResponseDto;
+import com.local.event.finder.model.entity.Category;
 import com.local.event.finder.model.entity.Event;
+import com.local.event.finder.model.entity.EventCategory;
+import com.local.event.finder.model.entity.EventParticipant;
 import com.local.event.finder.model.entity.User;
+import com.local.event.finder.repository.EventCategoryRepository;
+import com.local.event.finder.repository.EventParticipantRepository;
 import com.local.event.finder.repository.EventRepository;
 import com.local.event.finder.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -12,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -21,10 +30,13 @@ public class EventServiceImpl implements EventService{
 
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private final EventParticipantRepository eventParticipantRepository;
+    private final CategoryRepository categoryRepository;
+    private final EventCategoryRepository eventCategoryRepository;
 
     @Override
     @Transactional
-    public EventResponseDto create(EventRequestDto eventDto) {
+    public void create(EventRequestDto eventDto) {
         Objects.requireNonNull(eventDto, "Event cannot be null");
         if(eventRepository.existsByTitleAndStartTimeAndEndTimeAndLatitudeAndLongitude(eventDto.title(),
                 eventDto.startTime(), eventDto.endTime(), eventDto.latitude(), eventDto.longitude())){
@@ -47,40 +59,15 @@ public class EventServiceImpl implements EventService{
         event.setAgeRestriction(eventDto.ageRestriction());
         event.setImageUrl(eventDto.imageUrl());
         event.setCreatedBy(user);
-        Event savedEvent = eventRepository.save(event);
-        return new EventResponseDto(
-                savedEvent.getId(),
-                savedEvent.getTitle(),
-                savedEvent.getDescription(),
-                savedEvent.getLatitude(),
-                savedEvent.getLongitude(),
-                savedEvent.getCountry(),
-                savedEvent.getCity(),
-                savedEvent.getStartTime(),
-                savedEvent.getEndTime(),
-                savedEvent.getMaxParticipants(),
-                savedEvent.getAgeRestriction(),
-                savedEvent.getImageUrl(),
-                eventDto.tagIds(),
-                eventDto.categoryIds(),
-                savedEvent.getCreatedAt());
-    }
-
-    @Override
-    public Event getById(Long id) {
-        Objects.requireNonNull(id, "Event id cannot be null");
-        return eventRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Event with id " + id + " not found"));
+        eventRepository.save(event);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<EventResponseDto> getByTitle(String title) {
-        Objects.requireNonNull(title, "Event title cannot be null");
-        return eventRepository.findAllByTitle(title).stream()
-                .map(this::toResponseDto)
-                .toList();
+    public EventResponseDto getEventResponseById(Long id) {
+        return toResponseDto(getById(id));
     }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -129,15 +116,6 @@ public class EventServiceImpl implements EventService{
         eventRepository.delete(existingEvent);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<EventResponseDto> getEventsByUser(Long userId) {
-        Objects.requireNonNull(userId, "User id cannot be null");
-        return eventRepository.findByCreatedById(userId)
-                .stream()
-                .map(this::toResponseDto)
-                .toList();
-    }
 
     private EventResponseDto toResponseDto(Event event) {
         return new EventResponseDto(
@@ -159,12 +137,130 @@ public class EventServiceImpl implements EventService{
         );
     }
 
+
+    @Override
+    @Transactional(readOnly = true)
+    public Event getById(Long id) {
+        Objects.requireNonNull(id, "Event id cannot be null");
+        return eventRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Event with id " + id + " not found"));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void joinEvent(Long eventId) {
+        Objects.requireNonNull(eventId, "Event id cannot be null");
+
+        Event event = getById(eventId);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        if (event.getCreatedBy().getId().equals(user.getId())) {
+            throw new EntityNotFoundException("Event creator cant join event");
+        }
+        if (eventParticipantRepository.existsByEventIdAndUserId(eventId, user.getId())){
+            throw new EntityNotFoundException("User already joined this event");
+        }
+        long participantsCount = eventParticipantRepository.countByEventId(eventId);
+        if (participantsCount >= event.getMaxParticipants()) {
+            throw new EntityNotFoundException("Event max participants reached");
+        }
+        EventParticipant eventParticipant = new EventParticipant();
+        eventParticipant.setEvent(event);
+        eventParticipant.setUser(user);
+        eventParticipant.setDateTime(LocalDateTime.now());
+        eventParticipantRepository.save(eventParticipant);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void leaveEvent(Long eventId){
+        Objects.requireNonNull(eventId, "Event id cannot be null");
+
+        Event event = getById(eventId);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        if (!eventParticipantRepository.existsByEventIdAndUserId(eventId, user.getId())) {
+            throw new EntityNotFoundException("User is not participant of this event");
+        }
+
+        eventParticipantRepository.deleteByEventIdAndUserId(eventId, user.getId());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EventParticipantResponseDto> getParticipants(Long eventId) {
+        Objects.requireNonNull(eventId, "Event id cannot be null");
+        getById(eventId);
+
+        return eventParticipantRepository.findAllByEventId(eventId).stream()
+                .map(eventParticipant -> {
+                    User user = eventParticipant.getUser();
+                    return new EventParticipantResponseDto(
+                            user.getUsername(),
+                            user.getEmail(),
+                            user.getAvatarUrl(),
+                            user.getAge()
+                    );
+                })
+                .toList();
+    }
+
     @Override
     @Transactional
-    public EventResponseDto getEventResponseById(Long id) {
-        Objects.requireNonNull(id, "Event id cannot be null");
-        Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Event with id " + id + " not found"));
-        return toResponseDto(event);
+    public void assignCategory(Long eventId, Long categoryId) {
+        Objects.requireNonNull(eventId, "Event id cannot be null");
+        Objects.requireNonNull(categoryId, "Category id cannot be null");
+
+        Event event = getById(eventId);
+        validateEventCreator(event);
+
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new EntityNotFoundException("Category with id " + categoryId + " not found"));
+
+        if (eventCategoryRepository.existsByEventIdAndCategoryId(eventId, categoryId)){
+            throw new EntityNotFoundException("Category already assigned to this event");
+        }
+
+        EventCategory eventCategory = new EventCategory();
+        eventCategory.setEvent(event);
+        eventCategory.setCategory(category);
+        eventCategoryRepository.save(eventCategory);
+    }
+
+    private void validateEventCreator(Event event) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        if (!event.getCreatedBy().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("Only event creator can modify this event");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void removeCategory(Long eventId, Long categoryId) {
+        Objects.requireNonNull(eventId, "Event id cannot be null");
+        Objects.requireNonNull(categoryId, "Category id cannot be null");
+
+        Event event = getById(eventId);
+        validateEventCreator(event);
+
+        if (!eventCategoryRepository.existsByEventIdAndCategoryId(eventId, categoryId)) {
+            throw new IllegalArgumentException("Category is not assigned to this event");
+        }
+
+        eventCategoryRepository.deleteByEventIdAndCategoryId(eventId, categoryId);
     }
 }
