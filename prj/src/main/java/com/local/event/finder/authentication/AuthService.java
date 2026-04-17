@@ -2,6 +2,7 @@ package com.local.event.finder.authentication;
 
 import com.local.event.finder.authentication.dto.AuthResponse;
 import com.local.event.finder.authentication.dto.LoginRequest;
+import com.local.event.finder.authentication.dto.MessageDto;
 import com.local.event.finder.model.dto.RefreshRequestDto;
 import com.local.event.finder.model.dto.UserRequestDto;
 import com.local.event.finder.model.entity.RefreshToken;
@@ -81,6 +82,15 @@ public class AuthService {
         String email = user.getEmail();
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
         String accessToken = jwtService.generateToken(userDetails);
-        return  new AuthResponse(accessToken, newRefreshToken.getToken(), expiration);
+        return new AuthResponse(accessToken, newRefreshToken.getToken(), expiration);
+    }
+
+    @Transactional
+    public void logout(RefreshRequestDto dto){
+        Objects.requireNonNull(dto, "Token must not be null");
+        String refreshToken = dto.refreshToken();
+        RefreshToken token = refreshTokenService.findByToken(refreshToken)
+                        .orElseThrow(() -> new RuntimeException("Refresh token not found"));
+        refreshTokenService.revokeRefreshToken(token);
     }
 }

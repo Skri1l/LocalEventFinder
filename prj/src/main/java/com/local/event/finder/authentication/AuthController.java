@@ -2,6 +2,7 @@ package com.local.event.finder.authentication;
 
 import com.local.event.finder.authentication.dto.AuthResponse;
 import com.local.event.finder.authentication.dto.LoginRequest;
+import com.local.event.finder.authentication.dto.MessageDto;
 import com.local.event.finder.model.dto.RefreshRequestDto;
 import com.local.event.finder.model.dto.UserRequestDto;
 import jakarta.validation.Valid;
@@ -34,5 +35,10 @@ public class AuthController {
     @PostMapping("/refresh")
     public AuthResponse refresh(@Valid @RequestBody RefreshRequestDto dto){
         return authService.refresh(dto);
+    }
+
+    @PostMapping("/logout")
+    public void logout(@RequestBody RefreshRequestDto dto){
+        authService.logout(dto);
     }
 }
