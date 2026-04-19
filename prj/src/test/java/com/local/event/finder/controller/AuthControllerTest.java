@@ -2,8 +2,8 @@ package com.local.event.finder.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.local.event.finder.repository.RefreshTokenRepository;
-import com.local.event.finder.repository.UserRepository;
+import com.local.event.finder.refreshToken.RefreshTokenRepository;
+import com.local.event.finder.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +63,7 @@ public class AuthControllerTest {
                 "avatar_url", avatarUrl,
                 "age", age
         );
+
     }
 
     @Test
