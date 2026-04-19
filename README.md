@@ -6,6 +6,7 @@ Backend repository for `Local Event Finder` project.
 
 - [DataBase Design](./docs/src/database-design/description.md)
 - [API](./docs/src/api/api.md)
+- [Tech stack](./docs/src/tech-stack.md)
 
 ## License
 
