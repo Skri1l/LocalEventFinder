@@ -5,6 +5,10 @@ import com.local.event.finder.event.participant.EventParticipantResponseDto;
 import com.local.event.finder.event.category.Category;
 import com.local.event.finder.event.category.EventCategory;
 import com.local.event.finder.event.participant.EventParticipant;
+import com.local.event.finder.event.tag.EventTag;
+import com.local.event.finder.event.tag.EventTagRepository;
+import com.local.event.finder.event.tag.Tag;
+import com.local.event.finder.event.tag.TagRepository;
 import com.local.event.finder.user.User;
 import com.local.event.finder.event.category.EventCategoryRepository;
 import com.local.event.finder.event.participant.EventParticipantRepository;
@@ -29,6 +33,8 @@ public class EventServiceImpl implements EventService {
     private final EventParticipantRepository eventParticipantRepository;
     private final CategoryRepository categoryRepository;
     private final EventCategoryRepository eventCategoryRepository;
+    private final TagRepository tagRepository;
+    private final EventTagRepository eventTagRepository;
 
     @Override
     @Transactional
@@ -258,5 +264,43 @@ public class EventServiceImpl implements EventService {
         }
 
         eventCategoryRepository.deleteByEventIdAndCategoryId(eventId, categoryId);
+    }
+
+    @Override
+    @Transactional
+    public void assignTag(Long eventId, Long tagId) {
+        Objects.requireNonNull(eventId, "Event id cannot be null");
+        Objects.requireNonNull(tagId, "Tag id cannot be null");
+
+        Event event = getById(eventId);
+        validateEventCreator(event);
+
+        Tag tag = tagRepository.findById(tagId)
+                .orElseThrow(() -> new EntityNotFoundException("Tag with id " + tagId + " not found"));
+
+        if (eventTagRepository.existsByEventIdAndTagId(eventId, tagId)) {
+            throw new EntityNotFoundException("Tag already assigned to this event");
+        }
+
+        EventTag eventTag = new EventTag();
+        eventTag.setEvent(event);
+        eventTag.setTag(tag);
+        eventTagRepository.save(eventTag);
+    }
+
+    @Override
+    @Transactional
+    public void removeTag(Long eventId, Long tagId) {
+        Objects.requireNonNull(eventId, "Event id cannot be null");
+        Objects.requireNonNull(tagId, "Tag id cannot be null");
+
+        Event event = getById(eventId);
+        validateEventCreator(event);
+
+        if (!eventTagRepository.existsByEventIdAndTagId(eventId, tagId)) {
+            throw new IllegalArgumentException("Tag is not assigned to this event");
+        }
+
+        eventTagRepository.deleteByEventIdAndTagId(eventId, tagId);
     }
 }
