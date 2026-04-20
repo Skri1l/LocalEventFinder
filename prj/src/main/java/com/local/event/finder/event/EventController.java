@@ -108,4 +108,16 @@ public class EventController {
         eventService.removeCategory(id, categoryId);
         return new ApiResponseDto<>(new StatusResponseDto("OK"));
     }
+
+    @PostMapping("/{id}/tags/{tagid}")
+    public ResponseEntity<ApiResponseDto<StatusResponseDto>> assignTag(@PathVariable Long id, @PathVariable Long tagId){
+        eventService.assignTag(id, tagId);
+        return ResponseEntity.ok(new ApiResponseDto<>(new StatusResponseDto("OK")));
+    }
+
+    @DeleteMapping("/{id}/tags/{tag_id}")
+    public ResponseEntity<ApiResponseDto<StatusResponseDto>> removeTag(@PathVariable Long id, @PathVariable Long tagId){
+        eventService.removeTag(id, tagId);
+        return ResponseEntity.ok(new ApiResponseDto<>(new StatusResponseDto("OK")));
+    }
 }

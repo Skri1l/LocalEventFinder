@@ -27,4 +27,8 @@ public interface EventService {
     void assignCategory(Long eventId, Long categoryId);
 
     void removeCategory(Long eventId, Long categoryId);
+
+    void assignTag(Long eventId, Long tagId);
+
+    void removeTag(Long eventId, Long tagId);
 }
