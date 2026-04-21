@@ -140,7 +140,7 @@ Authorization: Bearer <access_token>
 
 ### Refresh token
 
-**POST** `/auth/register`
+**POST** `/auth/refresh`
 
 **Requires authorization:** No
 
