@@ -15,6 +15,7 @@ import com.local.event.finder.event.participant.EventParticipantRepository;
 import com.local.event.finder.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.Authentication;
@@ -40,15 +41,16 @@ public class EventServiceImpl implements EventService {
     @Transactional
     public void create(EventRequestDto eventDto) {
         Objects.requireNonNull(eventDto, "Event cannot be null");
+
         if(eventRepository.existsByTitleAndStartTimeAndEndTimeAndLatitudeAndLongitude(eventDto.title(),
                 eventDto.startTime(), eventDto.endTime(), eventDto.latitude(), eventDto.longitude())){
             throw new RuntimeException("This event already exists");
         }
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        User user = getCurrentUser();
+
         Event event = new Event();
+
         event.setTitle(eventDto.title());
         event.setDescription(eventDto.description());
         event.setLatitude(eventDto.latitude());
@@ -61,21 +63,30 @@ public class EventServiceImpl implements EventService {
         event.setAgeRestriction(eventDto.ageRestriction());
         event.setImageUrl(eventDto.imageUrl());
         event.setCreatedBy(user);
+
         eventRepository.save(event);
     }
 
     @Override
     @Transactional(readOnly = true)
     public EventResponseDto getEventResponseById(Long id) {
-        return toResponseDto(getById(id));
+        Event event = getById(id);
+        User user = getCurrentUser();
+
+        if (event.getAgeRestriction() > user.getAge()) {
+            throw new AccessDeniedException("You are not allowed to view this event");
+        }
+        return toResponseDto(event);
     }
 
 
     @Override
     @Transactional(readOnly = true)
     public List<EventResponseDto> getAll() {
+        User user = getCurrentUser();
         return eventRepository.findAll()
                 .stream()
+                .filter(event -> event.getAgeRestriction() <= user.getAge())
                 .map(this::toResponseDto)
                 .toList();
     }
@@ -95,6 +106,8 @@ public class EventServiceImpl implements EventService {
             throw new IllegalArgumentException("This event already exists");
         }
         Event existingEvent = getById(id);
+        validateEventCreator(existingEvent);
+
         existingEvent.setTitle(eventDto.title());
         existingEvent.setDescription(eventDto.description());
         existingEvent.setLatitude(eventDto.latitude());
@@ -115,6 +128,7 @@ public class EventServiceImpl implements EventService {
     public void delete(Long id) {
         Objects.requireNonNull(id, "Event id cannot be null");
         Event existingEvent = getById(id);
+        validateEventCreator(existingEvent);
         eventRepository.delete(existingEvent);
     }
 
@@ -149,17 +163,16 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public void joinEvent(Long eventId) {
         Objects.requireNonNull(eventId, "Event id cannot be null");
 
         Event event = getById(eventId);
+        User user = getCurrentUser();
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        if (event.getAgeRestriction() > user.getAge()) {
+            throw new AccessDeniedException("You are not allowed to join this event");
+        }
         if (event.getCreatedBy().getId().equals(user.getId())) {
             throw new EntityNotFoundException("Event creator cant join event");
         }
@@ -168,7 +181,7 @@ public class EventServiceImpl implements EventService {
         }
         long participantsCount = eventParticipantRepository.countByEventId(eventId);
         if (participantsCount >= event.getMaxParticipants()) {
-            throw new EntityNotFoundException("Event max participants reached");
+            throw new IllegalStateException("Event max participants reached");
         }
         EventParticipant eventParticipant = new EventParticipant();
         eventParticipant.setEvent(event);
@@ -178,17 +191,13 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public void leaveEvent(Long eventId){
         Objects.requireNonNull(eventId, "Event id cannot be null");
 
         Event event = getById(eventId);
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        User user = getCurrentUser();
 
         if (!eventParticipantRepository.existsByEventIdAndUserId(eventId, user.getId())) {
             throw new EntityNotFoundException("User is not participant of this event");
@@ -239,14 +248,10 @@ public class EventServiceImpl implements EventService {
     }
 
     private void validateEventCreator(Event event) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        User user = getCurrentUser();
 
         if (!event.getCreatedBy().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("Only event creator can modify this event");
+            throw new AccessDeniedException("Only event creator can modify this event");
         }
     }
 
@@ -302,5 +307,13 @@ public class EventServiceImpl implements EventService {
         }
 
         eventTagRepository.deleteByEventIdAndTagId(eventId, tagId);
+    }
+
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 }
