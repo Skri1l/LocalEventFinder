@@ -138,6 +138,31 @@ Authorization: Bearer <access_token>
 }
 ```
 
+### Refresh token
+
+**POST** `/auth/refresh`
+
+**Requires authorization:** No
+
+**Request:**
+```json
+{
+  "refreshToken": "jwt"
+}
+```
+
+**Response:**
+
+```json
+{
+  "data": {
+    "access_token": "jwt",
+    "refresh_token": "jwt",
+    "expires_in": 3600
+  }
+}
+```
+
 ## Users
 
 ### Get User
