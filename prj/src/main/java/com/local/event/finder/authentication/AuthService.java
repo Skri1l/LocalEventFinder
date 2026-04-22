@@ -48,6 +48,8 @@ public class AuthService {
         user.setEmail(userDto.email());
         user.setUsername(userDto.username());
         user.setPasswordHash(passwordEncoder.encode(userDto.password()));
+        user.setAvatarUrl(userDto.avatarUrl());
+        user.setAge(userDto.age());
         User savedUser = userRepository.save(user);
         String email = savedUser.getEmail();
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);

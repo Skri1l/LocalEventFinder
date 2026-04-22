@@ -1,14 +1,9 @@
 package com.local.event.finder.user;
 
-public record UserResponseDto (
-
+public record UserUpdateResponseDto(
         Long id,
-
         String username,
-
         String email,
-
-        String imageUrl,
-
+        String avatarUrl,
         int age
-){}
+) {}
