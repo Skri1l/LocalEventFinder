@@ -26,7 +26,8 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
-    public ApiResponseDto<UserUpdateResponseDto> updateUser(@PathVariable Long id, @Valid @RequestBody UserRequestDto dto) {
+    public ApiResponseDto<UserUpdateResponseDto> updateUser(@PathVariable Long id,
+                                                            @Valid @RequestBody UserUpdateRequestDto dto) {
         log.info("UserController:update");
         return new ApiResponseDto<>(userService.updateUser(id, dto));
     }
