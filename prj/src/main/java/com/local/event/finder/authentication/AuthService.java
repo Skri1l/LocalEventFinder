@@ -9,6 +9,7 @@ import com.local.event.finder.user.User;
 import com.local.event.finder.user.UserRepository;
 import com.local.event.finder.security.JwtService;
 import com.local.event.finder.refreshToken.RefreshTokenService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -39,10 +40,10 @@ public class AuthService {
     public AuthResponse register(final UserRequestDto userDto) {
         Objects.requireNonNull(userDto, "User must not be null");
         if (userRepository.existsByEmail(userDto.email())){
-            throw new RuntimeException("User with email " + userDto.email() + " already exists");
+            throw new IllegalStateException("User with email " + userDto.email() + " already exists");
         }
         if (userRepository.existsByUsername(userDto.username())) {
-            throw new RuntimeException("User with username " + userDto.username() + " already exists");
+            throw new IllegalStateException("User with username " + userDto.username() + " already exists");
         }
         User user = new User();
         user.setEmail(userDto.email());
@@ -67,7 +68,7 @@ public class AuthService {
         String accessToken = jwtService.generateToken(userDetails);
         String email = userDetails.getUsername();
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Email " + email + " not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Email " + email + " not found"));
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
         return new AuthResponse(accessToken, refreshToken.getToken(), expiration);
     }
@@ -91,7 +92,7 @@ public class AuthService {
         Objects.requireNonNull(dto, "Token must not be null");
         String refreshToken = dto.refreshToken();
         RefreshToken token = refreshTokenService.findByToken(refreshToken)
-                        .orElseThrow(() -> new RuntimeException("Refresh token not found"));
+                        .orElseThrow(() -> new EntityNotFoundException("Refresh token not found"));
         refreshTokenService.revokeRefreshToken(token);
     }
 }

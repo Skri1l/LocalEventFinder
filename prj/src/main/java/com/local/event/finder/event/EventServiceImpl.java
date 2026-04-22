@@ -42,9 +42,13 @@ public class EventServiceImpl implements EventService {
     public void create(EventRequestDto eventDto) {
         Objects.requireNonNull(eventDto, "Event cannot be null");
 
-        if(eventRepository.existsByTitleAndStartTimeAndEndTimeAndLatitudeAndLongitude(eventDto.title(),
-                eventDto.startTime(), eventDto.endTime(), eventDto.latitude(), eventDto.longitude())){
-            throw new RuntimeException("This event already exists");
+        if(eventRepository.existsByTitleAndStartTimeAndEndTimeAndLatitudeAndLongitude(
+                eventDto.title(),
+                eventDto.startTime(),
+                eventDto.endTime(),
+                eventDto.latitude(),
+                eventDto.longitude())){
+            throw new IllegalStateException("This event already exists");
         }
 
         User user = getCurrentUser();
