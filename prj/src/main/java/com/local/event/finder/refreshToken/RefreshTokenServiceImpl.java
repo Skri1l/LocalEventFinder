@@ -1,6 +1,7 @@
 package com.local.event.finder.refreshToken;
 
 import com.local.event.finder.user.User;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
@@ -34,12 +35,12 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Override
     public RefreshToken verifyRefreshToken(String token) {
         RefreshToken refreshToken = refreshTokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Refresh token not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Refresh token not found"));
         if (refreshToken.isRevoked()){
-            throw new RuntimeException("Refresh token is revoked");
+            throw new IllegalStateException("Refresh token is revoked");
         }
         if (refreshToken.getExpiresAt().isBefore(LocalDateTime.now())){
-            throw new RuntimeException("Refresh token is expired");
+            throw new IllegalStateException("Refresh token is expired");
         }
         return refreshToken;
     }

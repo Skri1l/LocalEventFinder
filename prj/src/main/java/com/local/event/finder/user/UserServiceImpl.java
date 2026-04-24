@@ -59,12 +59,12 @@ public class UserServiceImpl implements UserService {
 
         if (dto.username() != null && !dto.username().equals(user.getUsername())
                 && userRepository.existsByUsername(dto.username())) {
-            throw new RuntimeException("User with username " + dto.username() + " already exists");
+            throw new IllegalStateException("User with username " + dto.username() + " already exists");
         }
 
         if (dto.email() != null && !dto.email().equals(user.getEmail())
                 && userRepository.existsByEmail(dto.email())) {
-            throw new RuntimeException("User with email " + dto.email() + " already exists");
+            throw new IllegalStateException("User with email " + dto.email() + " already exists");
         }
 
         if (dto.username() != null) {
