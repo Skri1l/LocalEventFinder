@@ -3,6 +3,7 @@ package com.local.event.finder.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.local.event.finder.authentication.dto.LoginRequest;
+import com.local.event.finder.refreshToken.RefreshRequestDto;
 import com.local.event.finder.refreshToken.RefreshTokenRepository;
 import com.local.event.finder.user.UserRepository;
 import com.local.event.finder.user.UserRequestDto;
@@ -28,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 public class AuthControllerTest {
     private static final String AUTH_URL = "/auth";
-    private static final String REGISTER_URL = AUTH_URL + "register";
+    private static final String REGISTER_URL = AUTH_URL + "/register";
     private static final String LOGIN_URL = AUTH_URL + "/login";
     private static final String REFRESH_URL = AUTH_URL + "/refresh";
     private static final String LOGOUT_URL = AUTH_URL + "/logout";
@@ -234,7 +235,7 @@ public class AuthControllerTest {
         request.put("email", null);
         request.put("password", null);
         request.put("avatar_url", null);
-        request.put("age", 0);
+        request.put("age", null);
 
         mockMvc.perform(post(AuthControllerTest.REGISTER_URL)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -278,12 +279,68 @@ public class AuthControllerTest {
     }
 
     @Test
-    void shouldReturnBadRequest_whenLoginNewUser() throws Exception {
+    void shouldReturnIsForbidden_whenLoginNewUser() throws Exception {
         LoginRequest newUser = new LoginRequest(this.generateUniqueEmail(), AuthControllerTest.GOOD_PASSWORD);
         mockMvc.perform(post(AuthControllerTest.LOGIN_URL)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(newUser)))
-            .andExpect(status().isBadRequest())
+            .andExpect(status().isForbidden())
             .andReturn();
+    }
+
+    @Test
+    void shouldRegisterAndLoginAndRefreshAndLogoutSuccessfully() throws Exception {
+        LoginRequest newUser = new LoginRequest(this.generateUniqueEmail(), AuthControllerTest.GOOD_PASSWORD);
+        UserRequestDto registration = new UserRequestDto(
+                this.generateUniqueUsername(),
+                newUser.email(),
+                newUser.password(),
+                AuthControllerTest.GOOD_AVATAR_URL,
+                AuthControllerTest.GOOD_AGE
+        );
+
+        mockMvc.perform(post(AuthControllerTest.REGISTER_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registration)))
+                .andExpect(status().isCreated());
+
+        MvcResult result = mockMvc.perform(post(AuthControllerTest.LOGIN_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newUser)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String json = result.getResponse().getContentAsString();
+        JsonNode root = objectMapper.readTree(json);
+
+        JsonNode data = root.get(AuthControllerTest.ROOT_NAME);
+        assertNotNull(data);
+        assertTrue(data.has(AuthControllerTest.REFRESH_TOKEN_NAME));
+        String refresh = data.get(AuthControllerTest.REFRESH_TOKEN_NAME).asText();
+
+        RefreshRequestDto refreshRequestDto = new RefreshRequestDto(refresh);
+
+        result = mockMvc.perform(post(AuthControllerTest.REFRESH_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(refreshRequestDto)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        json = result.getResponse().getContentAsString();
+        root = objectMapper.readTree(json);
+
+        data = root.get(AuthControllerTest.ROOT_NAME);
+        assertNotNull(data);
+        assertTrue(data.has(AuthControllerTest.ACCESS_TOKEN_NAME));
+        String access = data.get(AuthControllerTest.ACCESS_TOKEN_NAME).asText();
+
+        mockMvc.perform(post(AuthControllerTest.LOGOUT_URL)
+            .header("Authorization", "Bearer " + access)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk());
+
+        mockMvc.perform(post(AuthControllerTest.LOGOUT_URL)
+                .header("Authorization", "Bearer " + access))
+                .andExpect(status().isForbidden());
     }
 }
