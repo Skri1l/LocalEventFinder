@@ -2,7 +2,6 @@ package com.local.event.finder.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.local.event.finder.authentication.dto.LoginRequest;
 import com.local.event.finder.user.UserRepository;
 import com.local.event.finder.user.UserRequestDto;
 import com.local.event.finder.refreshToken.RefreshTokenRepository;
@@ -19,8 +18,11 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.time.LocalDateTime;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -218,6 +220,103 @@ public class EventControllerTest {
         String token = registerAndLogin();
 
         mockMvc.perform(get(EVENTS_URL + "/1/participants")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldRejectJoin_whenAgeRestrictionNotMet() throws Exception {
+        String token = registerAndLogin();
+
+        EventRequestDto event = new EventRequestDto(
+                "Age restricted event",
+                "desc",
+                54.6,
+                25.2,
+                "Lithuania",
+                "Vilnius",
+                LocalDateTime.now().plusDays(1),
+                LocalDateTime.now().plusDays(2),
+                10,
+                60, // age restriction 60+
+                Set.of(),
+                Set.of(),
+                "https://img.com/event.png"
+        );
+
+        mockMvc.perform(post(EVENTS_URL)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(event)))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post(EVENTS_URL + "/1/participants")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldNotAllowJoin_whenMaxParticipantsReached() throws Exception {
+        String token = registerAndLogin();
+
+        EventRequestDto event = new EventRequestDto(
+                "Full event",
+                "desc",
+                54.6,
+                25.2,
+                "Lithuania",
+                "Vilnius",
+                LocalDateTime.now().plusDays(1),
+                LocalDateTime.now().plusDays(2),
+                1,   // max participants = 1
+                0,
+                Set.of(),
+                Set.of(),
+                "https://img.com/event.png"
+        );
+
+        mockMvc.perform(post(EVENTS_URL)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(event)))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post(EVENTS_URL + "/1/participants")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post(EVENTS_URL + "/1/participants")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void shouldAllowCreatorToJoinEvenIfFull() throws Exception {
+        String token = registerAndLogin();
+
+        EventRequestDto event = new EventRequestDto(
+                "Edge event",
+                "desc",
+                54.6,
+                25.2,
+                "Lithuania",
+                "Vilnius",
+                LocalDateTime.now().plusDays(1),
+                LocalDateTime.now().plusDays(2),
+                1,
+                0,
+                Set.of(),
+                Set.of(),
+                "https://img.com/event.png"
+        );
+
+        mockMvc.perform(post(EVENTS_URL)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(event)))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post(EVENTS_URL + "/1/participants")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
     }
