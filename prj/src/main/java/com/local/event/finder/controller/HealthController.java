@@ -14,6 +14,7 @@ public class HealthController {
     public String health(HttpServletResponse response){
         int status = response.getStatus();
         logger.info("Status is: "+status);
-            return "OK";
+        /* COMMENT: not wrapped in api response health controller */
+        return "OK";
     }
 }
