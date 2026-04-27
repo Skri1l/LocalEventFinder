@@ -26,6 +26,9 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
         refreshToken.setUser(user);
         refreshToken.setToken(uuid);
+        /*
+        COMMENT: expired at not connected to real expiration information from .env file
+         */
         refreshToken.setExpiresAt(LocalDateTime.now().plusDays(30));
         refreshToken.setRevoked(false);
 
