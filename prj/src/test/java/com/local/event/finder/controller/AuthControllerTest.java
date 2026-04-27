@@ -2,6 +2,7 @@ package com.local.event.finder.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.local.event.finder.authentication.dto.LoginRequest;
 import com.local.event.finder.refreshToken.RefreshTokenRepository;
 import com.local.event.finder.user.UserRepository;
 import com.local.event.finder.user.UserRequestDto;
@@ -14,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -25,8 +27,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 public class AuthControllerTest {
-    private static final String REGISTER_URL = "/auth/register";
+    private static final String AUTH_URL = "/auth";
+    private static final String REGISTER_URL = AUTH_URL + "register";
+    private static final String LOGIN_URL = AUTH_URL + "/login";
+    private static final String REFRESH_URL = AUTH_URL + "/refresh";
+    private static final String LOGOUT_URL = AUTH_URL + "/logout";
     private static final String ROOT_NAME = "data";
+
+    private static final String ACCESS_TOKEN_NAME = "access_token";
+    private static final String REFRESH_TOKEN_NAME = "refresh_token";
+    private static final String EXPIRATION_IN_TOKEN_NAME = "expires_in";
 
     private static final String GOOD_USERNAME = "GoodUsername";
     private static final String GOOD_EMAIL = "GoodEmail@exmaple.com";
@@ -142,10 +152,10 @@ public class AuthControllerTest {
         JsonNode data = root.get(AuthControllerTest.ROOT_NAME);
         assertNotNull(data);
 
-        assertTrue(data.has("access_token"));
-        assertTrue(data.has("refresh_token"));
+        assertTrue(data.has(AuthControllerTest.ACCESS_TOKEN_NAME));
+        assertTrue(data.has(AuthControllerTest.REFRESH_TOKEN_NAME));
 
-        int expiresIn = data.get("expires_in").asInt();
+        int expiresIn = data.get(AuthControllerTest.EXPIRATION_IN_TOKEN_NAME).asInt();
         assertTrue(expiresIn > 0);
     }
 
@@ -215,5 +225,65 @@ public class AuthControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
         }
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenNullData() throws Exception {
+        Map<String, Object> request = new HashMap<>();
+        request.put("username", null);
+        request.put("email", null);
+        request.put("password", null);
+        request.put("avatar_url", null);
+        request.put("age", 0);
+
+        mockMvc.perform(post(AuthControllerTest.REGISTER_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldRegisterAndLoginSuccessfully() throws Exception {
+        LoginRequest newUser = new LoginRequest(this.generateUniqueEmail(), AuthControllerTest.GOOD_PASSWORD);
+        UserRequestDto registration = new UserRequestDto(
+                this.generateUniqueUsername(),
+                newUser.email(),
+                newUser.password(),
+                AuthControllerTest.GOOD_AVATAR_URL,
+                AuthControllerTest.GOOD_AGE
+        );
+
+        mockMvc.perform(post(AuthControllerTest.REGISTER_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registration)))
+                .andExpect(status().isCreated());
+
+        MvcResult result = mockMvc.perform(post(AuthControllerTest.LOGIN_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newUser)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String json = result.getResponse().getContentAsString();
+        JsonNode root = objectMapper.readTree(json);
+
+        JsonNode data = root.get(AuthControllerTest.ROOT_NAME);
+        assertNotNull(data);
+
+        assertTrue(data.has(AuthControllerTest.ACCESS_TOKEN_NAME));
+        assertTrue(data.has(AuthControllerTest.REFRESH_TOKEN_NAME));
+
+        int expiresIn = data.get(AuthControllerTest.EXPIRATION_IN_TOKEN_NAME).asInt();
+        assertTrue(expiresIn > 0);
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenLoginNewUser() throws Exception {
+        LoginRequest newUser = new LoginRequest(this.generateUniqueEmail(), AuthControllerTest.GOOD_PASSWORD);
+        mockMvc.perform(post(AuthControllerTest.LOGIN_URL)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(newUser)))
+            .andExpect(status().isBadRequest())
+            .andReturn();
     }
 }
