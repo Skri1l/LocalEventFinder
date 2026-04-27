@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -26,11 +27,63 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class AuthControllerTest {
     private static final String REGISTER_URL = "/auth/register";
     private static final String ROOT_NAME = "data";
+
     private static final String GOOD_USERNAME = "GoodUsername";
     private static final String GOOD_EMAIL = "GoodEmail@exmaple.com";
     private static final String GOOD_PASSWORD = "av2bB123?0";
     private static final String GOOD_AVATAR_URL = "https://example.com/avatar.png";
     private static final int GOOD_AGE = 25;
+
+    private static final Set<String> INVALID_USERNAMES = Set.of(
+            "",
+            " ",
+            "?",
+            "12"
+    );
+
+    private static final Set<String> INVALID_EMAILS = Set.of(
+            "plain_address",
+            "@no-local-part.com",
+            "no-at-symbol.com",
+            "user@.com",
+            "user@com",
+            "user@domain..com",
+            "user@domain,com",
+            "user name@domain.com",
+            "user@domain .com",
+            "user@-domain.com",
+            "user@domain.com-",
+            "user@@domain.com",
+            ".user@domain.com",
+            "user.@domain.com",
+            "user@domain.c",
+            "user@domain.toolongtld",
+            "",
+            " "
+    );
+
+    private static final Set<String> INVALID_PASSWORDS = Set.of(
+            "Short1",
+            "alllowercase1",
+            "ALLUPPERCASE1",
+            "NoDigitsHere",
+            "short",
+            "12345678",
+            "abcdefgh",
+            "ABCDEFGH",
+            "Abcdefgh",
+            "ABCDEF12",
+            "abcdef12",
+            "Ab1",
+            "",
+            "        "
+    );
+
+    private static final Set<Integer> INVALID_AGES = Set.of(
+            -1,
+            0,
+            200
+    );
 
     @Autowired
     private MockMvc mockMvc;
@@ -58,171 +111,109 @@ public class AuthControllerTest {
         userRepository.deleteAll();
     }
 
-//    @Test
-//    void shouldRegisterUserSuccessfully() throws Exception {
-//        UserRequestDto request = new UserRequestDto(
-//                GOOD_USERNAME,
-//                GOOD_EMAIL,
-//                GOOD_PASSWORD,
-//                GOOD_AVATAR_URL,
-//                GOOD_AGE
-//        );
-//
-//        MvcResult result = mockMvc.perform(post(REGISTER_URL)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(request)))
-//                .andExpect(status().isCreated())
-//                .andReturn();
-//
-//        String json = result.getResponse().getContentAsString();
-//        JsonNode root = objectMapper.readTree(json);
-//
-//        JsonNode data = root.get(ROOT_NAME);
-//        assertNotNull(data);
-//
-//        assertTrue(data.has("access_token"));
-//        assertTrue(data.has("refresh_token"));
-//
-//        int expiresIn = data.get("expires_in").asInt();
-//        assertTrue(expiresIn > 0);
-//    }
+    private String generateUniqueUsername() {
+        return AuthControllerTest.GOOD_USERNAME + this.idGenerator++;
+    }
 
-//    @Test
-//    void shouldReturnBadRequest_whenEmailIsInvalid() throws Exception {
-//        Map<String, Object> request = getRequest(
-//                GOOD_USERNAME,
-//                "invalid-email",
-//                GOOD_PASSWORD,
-//                GOOD_AVATAR_URL,
-//                GOOD_AGE
-//        );
-//
-//        mockMvc.perform(post(REGISTER_URL)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(request)))
-//                .andExpect(status().isBadRequest());
-//    }
-//
-//    @Test
-//    void shouldReturnBadRequest_whenPasswordTooShort() throws Exception {
-//        Map<String, Object> request = getRequest(
-//                GOOD_USERNAME,
-//                GOOD_EMAIL,
-//                "Ab1", // too short
-//                GOOD_AVATAR_URL,
-//                GOOD_AGE
-//        );
-//
-//        mockMvc.perform(post(REGISTER_URL)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(request)))
-//                .andExpect(status().isBadRequest());
-//    }
-//
-//    @Test
-//    void shouldReturnBadRequest_whenPasswordMissingUppercase() throws Exception {
-//        Map<String, Object> request = getRequest(
-//                GOOD_USERNAME,
-//                GOOD_EMAIL,
-//                "password123!", // no uppercase
-//                GOOD_AVATAR_URL,
-//                GOOD_AGE
-//        );
-//
-//        mockMvc.perform(post(REGISTER_URL)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(request)))
-//                .andExpect(status().isBadRequest());
-//    }
-//
-//    @Test
-//    void shouldReturnBadRequest_whenPasswordMissingDigit() throws Exception {
-//        Map<String, Object> request = getRequest(
-//                GOOD_USERNAME,
-//                GOOD_EMAIL,
-//                "Password!!!", // no digit
-//                GOOD_AVATAR_URL,
-//                GOOD_AGE
-//        );
-//
-//        mockMvc.perform(post(REGISTER_URL)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(request)))
-//                .andExpect(status().isBadRequest());
-//    }
-//
-//    @Test
-//    void shouldReturnBadRequest_whenEmailIsNull() throws Exception {
-//        Map<String, Object> request = getRequest(
-//                GOOD_USERNAME,
-//                null,
-//                GOOD_PASSWORD,
-//                GOOD_AVATAR_URL,
-//                GOOD_AGE
-//        );
-//
-//        mockMvc.perform(post(REGISTER_URL)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(request)))
-//                .andExpect(status().isBadRequest());
-//    }
-//
-//    @Test
-//    void shouldReturnConflict_whenUserAlreadyExists() throws Exception {
-//        Map<String, Object> request = getRequest(
-//                GOOD_USERNAME,
-//                GOOD_EMAIL,
-//                GOOD_PASSWORD,
-//                GOOD_AVATAR_URL,
-//                GOOD_AGE
-//        );
-//
-//        // first registration
-//        mockMvc.perform(post(REGISTER_URL)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(request)))
-//                .andExpect(status().isCreated());
-//
-//        // second registration with same email
-//        mockMvc.perform(post(REGISTER_URL)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(request)))
-//                .andExpect(status().isConflict());
-//    }
-//
-//    @Test
-//    void shouldReturnBadRequestWhenBodyIsEmpty() throws Exception {
-//        mockMvc.perform(post(REGISTER_URL)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(""))
-//                .andExpect(status().isBadRequest());
-//    }
-//
-//    @Test
-//    void shouldFailWhenRequiredFieldsAreMissing() throws Exception {
-//        Map<String, Object> request = Map.of(
-//                "email", "john@example.com"
-//        );
-//
-//        mockMvc.perform(post(REGISTER_URL)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(request)))
-//                .andExpect(status().isBadRequest());
-//    }
-//
-//    @Test
-//    void shouldFailWhenFieldsAreNull() throws Exception {
-//        Map<String, Object> request = getRequest(
-//                null,
-//                null,
-//                null,
-//                null,
-//                0
-//        );
-//
-//        mockMvc.perform(post(REGISTER_URL)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(request)))
-//                .andExpect(status().isBadRequest());
-//    }
+    private String generateUniqueEmail() {
+        return AuthControllerTest.GOOD_EMAIL + this.idGenerator++;
+    }
+
+
+    @Test
+    void shouldRegisterUserSuccessfully() throws Exception {
+        UserRequestDto request = new UserRequestDto(
+                this.generateUniqueUsername(),
+                this.generateUniqueEmail(),
+                AuthControllerTest.GOOD_PASSWORD,
+                AuthControllerTest.GOOD_AVATAR_URL,
+                AuthControllerTest.GOOD_AGE
+        );
+
+        MvcResult result = mockMvc.perform(post(AuthControllerTest.REGISTER_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String json = result.getResponse().getContentAsString();
+        JsonNode root = objectMapper.readTree(json);
+
+        JsonNode data = root.get(AuthControllerTest.ROOT_NAME);
+        assertNotNull(data);
+
+        assertTrue(data.has("access_token"));
+        assertTrue(data.has("refresh_token"));
+
+        int expiresIn = data.get("expires_in").asInt();
+        assertTrue(expiresIn > 0);
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenUsernameIsInvalid() throws Exception {
+        for (String invalidUsername : AuthControllerTest.INVALID_USERNAMES) {
+            UserRequestDto request = new UserRequestDto(
+                    invalidUsername,
+                    this.generateUniqueEmail(),
+                    AuthControllerTest.GOOD_PASSWORD,
+                    AuthControllerTest.GOOD_AVATAR_URL,
+                    AuthControllerTest.GOOD_AGE
+            );
+            mockMvc.perform(post(AuthControllerTest.REGISTER_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+        }
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenEmailIsInvalid() throws Exception {
+        for (String invalidEmail : AuthControllerTest.INVALID_EMAILS) {
+            UserRequestDto request = new UserRequestDto(
+                    this.generateUniqueUsername(),
+                    invalidEmail,
+                    AuthControllerTest.GOOD_PASSWORD,
+                    AuthControllerTest.GOOD_AVATAR_URL,
+                    AuthControllerTest.GOOD_AGE
+            );
+            mockMvc.perform(post(AuthControllerTest.REGISTER_URL)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenPasswordIsInvalid() throws Exception {
+        for (String invalidPassword : AuthControllerTest.INVALID_PASSWORDS) {
+            UserRequestDto request = new UserRequestDto(
+                    this.generateUniqueUsername(),
+                    this.generateUniqueEmail(),
+                    invalidPassword,
+                    AuthControllerTest.GOOD_AVATAR_URL,
+                    AuthControllerTest.GOOD_AGE
+            );
+            mockMvc.perform(post(AuthControllerTest.REGISTER_URL)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+    @Test
+    void shouldReturnBadRequest_whenAgeIsInvalid() throws Exception {
+        for (int invalidAge : AuthControllerTest.INVALID_AGES) {
+            UserRequestDto request = new UserRequestDto(
+                    this.generateUniqueUsername(),
+                    this.generateUniqueEmail(),
+                    AuthControllerTest.GOOD_PASSWORD,
+                    AuthControllerTest.GOOD_AVATAR_URL,
+                    invalidAge
+            );
+            mockMvc.perform(post(AuthControllerTest.REGISTER_URL)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+    }
 }
