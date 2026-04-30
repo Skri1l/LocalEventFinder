@@ -32,6 +32,9 @@ public class AuthService {
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final UserDetailsService userDetailsService;
+    /*
+    COMMENT: its better to use getter method from service, not this field here.
+     */
     @Value("${jwt.expiration}")
     private Long expiration;
 
@@ -45,6 +48,9 @@ public class AuthService {
         if (userRepository.existsByUsername(userDto.username())) {
             throw new IllegalStateException("User with username " + userDto.username() + " already exists");
         }
+        /*
+        COMMENT: U can create special mapper class that maps dto to user entity
+         */
         User user = new User();
         user.setEmail(userDto.email());
         user.setUsername(userDto.username());

@@ -23,6 +23,9 @@ public class UserServiceImpl implements UserService {
         Objects.requireNonNull(id,"User id cannot be null");
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        /*
+        COMMENT: u doesnt use email, but added getter
+         */
         String email = authentication.getName();
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
