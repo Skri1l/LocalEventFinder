@@ -135,7 +135,7 @@ public class AuthControllerTest {
     }
 
     private String generateUniqueEmail() {
-        return AuthControllerTest.GOOD_EMAIL + this.idGenerator++;
+        return this.idGenerator++ + AuthControllerTest.GOOD_EMAIL;
     }
 
 
