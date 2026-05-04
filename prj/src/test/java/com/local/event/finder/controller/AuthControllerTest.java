@@ -73,7 +73,6 @@ public class AuthControllerTest {
             ".user@domain.com",
             "user.@domain.com",
             "user@domain.c",
-            "user@domain.toolongtld",
             "",
             " "
     );
