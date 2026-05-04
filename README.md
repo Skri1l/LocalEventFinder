@@ -4,9 +4,14 @@ Backend repository for `Local Event Finder` project.
 
 ## Documentation Catalog
 
-- [DataBase Design](./docs/src/database-design/description.md)
-- [API](./docs/src/api/api.md)
-- [Tech stack](./docs/src/tech-stack.md)
+- How To:
+  - [Create .env file](./docs/src/How-To/create-env.md)
+  - [Build and Run Application](./docs/src/How-To/build-and-run.md)
+  - [Run tests](./docs/src/How-To/run-test.md)
+- Reference:
+  - [DataBase Design](./docs/src/Reference/database-design/description.md)
+  - [API](./docs/src/Reference/api/api.md)
+  - [Tech stack](./docs/src/Reference/tech-stack.md)
 
 ## License
 
