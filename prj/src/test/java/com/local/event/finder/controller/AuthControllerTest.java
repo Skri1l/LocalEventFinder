@@ -350,16 +350,23 @@ public class AuthControllerTest {
 
         data = root.get(AuthControllerTest.ROOT_NAME);
         assertNotNull(data);
+        assertTrue(data.has(AuthControllerTest.REFRESH_TOKEN_NAME));
+        refresh = data.get(AuthControllerTest.REFRESH_TOKEN_NAME).asText();
         assertTrue(data.has(AuthControllerTest.ACCESS_TOKEN_NAME));
         String access = data.get(AuthControllerTest.ACCESS_TOKEN_NAME).asText();
 
-        mockMvc.perform(post(AuthControllerTest.LOGOUT_URL)
-            .header("Authorization", "Bearer " + access)
-            .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk());
+        refreshRequestDto = new RefreshRequestDto(refresh);
 
         mockMvc.perform(post(AuthControllerTest.LOGOUT_URL)
-                .header("Authorization", "Bearer " + access))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + access)
+                        .content(objectMapper.writeValueAsString(refreshRequestDto)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post(AuthControllerTest.LOGOUT_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + access)
+                        .content(objectMapper.writeValueAsString(refreshRequestDto)))
                 .andExpect(status().isForbidden());
     }
 }

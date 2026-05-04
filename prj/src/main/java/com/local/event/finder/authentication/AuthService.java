@@ -94,7 +94,7 @@ public class AuthService {
     }
 
     @Transactional
-    public void logout(RefreshRequestDto dto){
+    public void logout(RefreshRequestDto dto) {
         Objects.requireNonNull(dto, "Token must not be null");
         String refreshToken = dto.refreshToken();
         RefreshToken token = refreshTokenService.findByToken(refreshToken)
