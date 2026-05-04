@@ -3,6 +3,7 @@ package com.local.event.finder.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.local.event.finder.authentication.dto.LoginRequest;
+import com.local.event.finder.event.EventRepository;
 import com.local.event.finder.refreshToken.RefreshRequestDto;
 import com.local.event.finder.refreshToken.RefreshTokenRepository;
 import com.local.event.finder.user.UserRepository;
@@ -116,8 +117,12 @@ public class AuthControllerTest {
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
 
+    @Autowired
+    private EventRepository eventRepository;
+
     @BeforeEach
     void clean() {
+        eventRepository.deleteAll();
         refreshTokenRepository.deleteAll();
         userRepository.deleteAll();
     }
