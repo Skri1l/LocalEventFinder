@@ -10,19 +10,23 @@ import com.local.event.finder.user.UserRepository;
 import com.local.event.finder.user.UserRequestDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -182,21 +186,32 @@ public class AuthControllerTest {
         }
     }
 
-    @Test
-    void shouldReturnBadRequest_whenEmailIsInvalid() throws Exception {
-        for (String invalidEmail : AuthControllerTest.INVALID_EMAILS) {
-            UserRequestDto request = new UserRequestDto(
-                    this.generateUniqueUsername(),
-                    invalidEmail,
-                    AuthControllerTest.GOOD_PASSWORD,
-                    AuthControllerTest.GOOD_AVATAR_URL,
-                    AuthControllerTest.GOOD_AGE
-            );
-            mockMvc.perform(post(AuthControllerTest.REGISTER_URL)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest());
-        }
+    @ParameterizedTest(name = "Invalid email: {0}")
+    @MethodSource("invalidEmails")
+    void shouldReturnBadRequest_whenEmailIsInvalid(String invalidEmail) throws Exception {
+        UserRequestDto request = new UserRequestDto(
+                generateUniqueUsername(),
+                invalidEmail,
+                GOOD_PASSWORD,
+                GOOD_AVATAR_URL,
+                GOOD_AGE
+        );
+
+        mockMvc.perform(post(REGISTER_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(result -> {
+                    int actual = result.getResponse().getStatus();
+                    String body = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+                    assertEquals(HttpStatus.BAD_REQUEST.value(), actual,
+                            () -> "Invalid email: [" + invalidEmail + "] → got " + actual +
+                                    ", body=" + body);
+                });
+    }
+
+    static Stream<String> invalidEmails() {
+        return INVALID_EMAILS.stream();
     }
 
     @Test
