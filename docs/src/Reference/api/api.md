@@ -190,7 +190,7 @@ Authorization: Bearer <access_token>
 
 ### Update User (Partial)
 
-**PATCH** `/users/{id}`
+**PATCH** `/users/me`
 
 **Requires authorization:** Yes - A user can only edit their own profile.
 
@@ -219,9 +219,75 @@ Authorization: Bearer <access_token>
 
 ### Delete User
 
-**DELETE** `/users/{id}`
+**DELETE** `/users/me`
 
 **Requires authorization:** Yes - A user can only delete their own profile.
+
+If everything OK **Response:**
+
+```json
+{
+  "data": {
+    "status": "OK"
+  }
+}
+```
+
+## Users Admin Control
+
+### Block User
+
+**PATCH** `/users/{id}/block`
+
+**Requires authorization:** Yes - Only admin can block users.
+
+If everything OK **Response:**
+
+```json
+{
+  "data": {
+    "status": "OK"
+  }
+}
+```
+
+### UnBlock User
+
+**DELETE** `/users/{id}/block`
+
+**Requires authorization:** Yes - Only admin can block users.
+
+If everything OK **Response:**
+
+```json
+{
+  "data": {
+    "status": "OK"
+  }
+}
+```
+
+### Enhance the role of User
+
+**PATCH** `/users/{id}/op`
+
+**Requires authorization:** Yes - Only admin can Enhance role users.
+
+If everything OK **Response:**
+
+```json
+{
+  "data": {
+    "status": "OK"
+  }
+}
+```
+
+### Downgrade the role of User
+
+**DELETE** `/users/{id}/op`
+
+**Requires authorization:** Yes - Only admin can Enhance role users.
 
 If everything OK **Response:**
 
