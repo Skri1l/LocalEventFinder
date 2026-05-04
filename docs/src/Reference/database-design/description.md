@@ -4,15 +4,17 @@
 
 ### users
 
-| Field Name    | Type      | Description            |
-| ------------- | --------- | ---------------------- |
-| id            | UUID      | Unique user identifier |
-| username      | VARCHAR   | User nickname          |
-| email         | VARCHAR   | User email address     |
-| password_hash | VARCHAR   | Hashed password        |
-| avatar_url    | VARCHAR   | Profile image URL      |
-| age           | INTEGER   | User age               |
-| created_at    | TIMESTAMP | Account creation date  |
+| Field Name    | Type      | Description                 |
+| ------------- | --------- | ----------------------      |
+| id            | UUID      | Unique user identifier      |
+| username      | VARCHAR   | User nickname               |
+| email         | VARCHAR   | User email address          |
+| password_hash | VARCHAR   | Hashed password             |
+| avatar_url    | VARCHAR   | Profile image URL           |
+| role          | VARCHAR   | Role string - "admin"/user  |
+| is_blocked    | BOOLEAN   | Is blocked user flag        |
+| age           | INTEGER   | User age                    |
+| created_at    | TIMESTAMP | Account creation date       |
 
 ### events
 
@@ -72,7 +74,7 @@
 
 ## Diagram
 
-![DB-diagram-image](../../assets/database-design/diagram.png)
+![DB-diagram-image](../../../assets/database-design/diagram.png)
 
 ## DBML Format
 
@@ -85,6 +87,8 @@ Table users {
   email varchar [unique]
   password_hash varchar
   avatar_url varchar
+  role varchar
+  is_blocked bool
   age int
   created_at timestamp
 }
