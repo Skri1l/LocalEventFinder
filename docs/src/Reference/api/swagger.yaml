@@ -1,0 +1,418 @@
+openapi: 3.0.3
+info:
+  title: Events API
+  version: 1.0.0
+
+servers:
+  - url: https://api.example.com
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    DataResponse:
+      type: object
+      properties:
+        data:
+          type: object
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+            message:
+              type: string
+            details:
+              type: string
+
+    AuthTokens:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        expires_in:
+          type: integer
+
+    User:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        avatar_url:
+          type: string
+        age:
+          type: integer
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+        max_participants:
+          type: integer
+        age_restriction:
+          type: integer
+        image_url:
+          type: string
+        status:
+          type: string
+        created_by:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+paths:
+
+  /health:
+    get:
+      summary: Health check
+      responses:
+        200:
+          description: OK
+
+  /auth/login:
+    post:
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: Tokens
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokens'
+
+  /auth/register:
+    post:
+      summary: Register user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                avatar_url:
+                  type: string
+                age:
+                  type: integer
+      responses:
+        200:
+          description: Tokens
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokens'
+
+  /auth/logout:
+    delete:
+      summary: Logout
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: OK
+
+  /auth/refresh:
+    post:
+      summary: Refresh token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        200:
+          description: Tokens
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokens'
+
+  /users/{id}:
+    get:
+      summary: Get user
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: User
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /users/me:
+    patch:
+      summary: Update current user
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        200:
+          description: Updated user
+
+    delete:
+      summary: Delete current user
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: OK
+
+  /users/{id}/block:
+    patch:
+      summary: Block user
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: OK
+
+    delete:
+      summary: Unblock user
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: OK
+
+  /users/{id}/op:
+    patch:
+      summary: Promote user
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: OK
+
+    delete:
+      summary: Demote user
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: OK
+
+  /events:
+    post:
+      summary: Create event
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Event'
+      responses:
+        200:
+          description: OK
+
+    get:
+      summary: List events
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: city
+          schema: { type: string }
+        - in: query
+          name: country
+          schema: { type: string }
+        - in: query
+          name: category_id
+          schema: { type: string }
+        - in: query
+          name: tag_id
+          schema: { type: string }
+        - in: query
+          name: date_from
+          schema: { type: string }
+        - in: query
+          name: date_to
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer }
+        - in: query
+          name: offset
+          schema: { type: integer }
+      responses:
+        200:
+          description: Events list
+
+  /events/{id}:
+    get:
+      summary: Get event
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        200:
+          description: Event
+
+    patch:
+      summary: Update event
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Updated
+
+    delete:
+      summary: Delete event
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: OK
+
+  /events/{id}/participants:
+    post:
+      summary: Join event
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: OK
+
+    get:
+      summary: Get participants
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Participants list
+
+  /events/{id}/participants/me:
+    delete:
+      summary: Leave event
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: OK
+
+  /categories:
+    post:
+      summary: Create category
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: OK
+
+    get:
+      summary: List categories
+      responses:
+        200:
+          description: Categories list
+
+  /tags:
+    post:
+      summary: Create tag
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: OK
+
+    get:
+      summary: List tags
+      responses:
+        200:
+          description: Tags list
+
+  /events/{id}/categories/{category_id}:
+    post:
+      summary: Assign category
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: OK
+
+    delete:
+      summary: Remove category
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: OK
+
+  /events/{id}/tags/{tag_id}:
+    post:
+      summary: Assign tag
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: OK
+
+    delete:
+      summary: Remove tag
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: OK
