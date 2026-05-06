@@ -2,6 +2,7 @@ package com.local.event.finder.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.local.event.finder.event.EventRepository;
 import com.local.event.finder.refreshToken.RefreshTokenRepository;
 import com.local.event.finder.user.UserRepository;
 import com.local.event.finder.user.UserRequestDto;
@@ -44,10 +45,14 @@ public class UserControllerTest {
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
 
+    @Autowired
+    private EventRepository eventRepository;
+
     private long id = 0;
 
     @BeforeEach
     void clean() {
+        eventRepository.deleteAll();
         refreshTokenRepository.deleteAll();
         userRepository.deleteAll();
     }
@@ -115,33 +120,11 @@ public class UserControllerTest {
                 200           // invalid age
         );
 
-        mockMvc.perform(patch(USERS_URL + "/1")
+        mockMvc.perform(patch(USERS_URL + "/me")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
                 .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void shouldNotUpdateAnotherUser() throws Exception {
-        // user1
-        String token1 = registerAndLogin(newEmail(), newUsername());
-
-        // user2
-        registerAndLogin(newEmail(), newUsername());
-
-        UserUpdateRequestDto update = new UserUpdateRequestDto(
-                "hacked",
-                null,
-                null,
-                null
-        );
-
-        mockMvc.perform(patch(USERS_URL + "/2")
-                        .header("Authorization", "Bearer " + token1)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(update)))
-                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -151,15 +134,5 @@ public class UserControllerTest {
         mockMvc.perform(delete(USERS_URL + "/me")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
-    }
-
-    @Test
-    void shouldNotDeleteAnotherUser() throws Exception {
-        String token1 = registerAndLogin(newEmail(), newUsername());
-        registerAndLogin(newEmail(), newUsername());
-
-        mockMvc.perform(delete(USERS_URL + "/2")
-                        .header("Authorization", "Bearer " + token1))
-                .andExpect(status().isForbidden());
     }
 }
