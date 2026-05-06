@@ -80,18 +80,6 @@ public class UserControllerTest {
     }
 
     @Test
-    void shouldGetUser() throws Exception {
-        String email = newEmail();
-        String username = newUsername();
-
-        String token = registerAndLogin(email, username);
-
-        mockMvc.perform(get(USERS_URL + "/1")
-                        .header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk());
-    }
-
-    @Test
     void shouldUpdateOwnUser() throws Exception {
         String email = newEmail();
         String username = newUsername();
@@ -105,7 +93,7 @@ public class UserControllerTest {
                 null
         );
 
-        MvcResult result = mockMvc.perform(patch(USERS_URL + "/1")
+        MvcResult result = mockMvc.perform(patch(USERS_URL + "/me")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(update)))
@@ -160,7 +148,7 @@ public class UserControllerTest {
     void shouldDeleteOwnUser() throws Exception {
         String token = registerAndLogin(newEmail(), newUsername());
 
-        mockMvc.perform(delete(USERS_URL + "/1")
+        mockMvc.perform(delete(USERS_URL + "/me")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
     }
