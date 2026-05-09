@@ -35,6 +35,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
 
+    env:
+      POSTGRES_DB_TEST: testdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      SPRING_DATASOURCE_URL_TEST: jdbc:postgresql://postgres:5432/testdb
+      JWT_SECRET: testsecret
+
     defaults:
       run:
         working-directory: prj
