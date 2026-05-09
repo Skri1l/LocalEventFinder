@@ -3,7 +3,7 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - feature/#110-deploying-system # Test feature in this branch
+      - feature/#110-deploying-system # Test feature in this branch 1
 
 jobs:
   deploy:
