@@ -8,6 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    needs: docker-tests
 
     steps:
       - name: Deploy application on EC2
