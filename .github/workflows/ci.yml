@@ -24,7 +24,8 @@ jobs:
           distribution: 'temurin'
 
       - name: Grant execute permission for Maven Wrapper
-        run: chmod +x mvn
+        run: chmod +x mvnw
 
       - name: Build project
-        run: mvn clean package -DskipTests
+        run: ./mvnw clean package -DskipTests
+        
