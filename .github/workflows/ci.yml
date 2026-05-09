@@ -30,3 +30,23 @@ jobs:
 
       - name: Build project
         run: mvn clean package -DskipTests
+
+  docker-tests:
+    runs-on: ubuntu-latest
+    needs: build
+
+    defaults:
+      run:
+        working-directory: prj
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run docker integration tests
+        run: |
+          docker compose -p testenv \
+            -f docker-compose.test.yml \
+            up --build \
+            --abort-on-container-exit \
+            --exit-code-from app-test
