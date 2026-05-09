@@ -3,7 +3,7 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - develop
+      - feature/#110-deploying-system # Test feature in this branch
 
 jobs:
   deploy:
@@ -22,7 +22,7 @@ jobs:
             cd /home/ubuntu/Backend/prj
 
             echo "Pulling latest changes..."
-            git pull origin develop
+            git pull origin feature/#110-deploying-system
 
             echo "Stopping old containers..."
             docker compose down
