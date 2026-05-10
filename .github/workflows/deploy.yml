@@ -24,6 +24,9 @@ jobs:
             echo "Pulling latest changes..."
             git pull origin develop
 
+            echo "Repackage project..."
+            mvn clean package -DskipTests=true
+
             echo "Stopping old containers..."
             docker compose down
 
