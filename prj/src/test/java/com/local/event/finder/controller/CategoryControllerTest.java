@@ -2,9 +2,11 @@ package com.local.event.finder.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.local.event.finder.event.EventRepository;
 import com.local.event.finder.event.EventRequestDto;
 import com.local.event.finder.event.category.CategoryRepository;
 import com.local.event.finder.event.category.CategoryRequestDto;
+import com.local.event.finder.event.participant.EventParticipantRepository;
 import com.local.event.finder.refreshToken.RefreshTokenRepository;
 import com.local.event.finder.user.UserRepository;
 import com.local.event.finder.user.UserRequestDto;
@@ -52,12 +54,23 @@ public class CategoryControllerTest {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    @Autowired
+    private EventParticipantRepository eventParticipantRepository;
+
+    @Autowired
+    private EventRepository eventRepository;
+
     private long id = 0;
 
     @BeforeEach
     void clean() {
+        eventParticipantRepository.deleteAll();
+        eventRepository.deleteAll();
+
         refreshTokenRepository.deleteAll();
+
         userRepository.deleteAll();
+
         categoryRepository.deleteAll();
     }
 
