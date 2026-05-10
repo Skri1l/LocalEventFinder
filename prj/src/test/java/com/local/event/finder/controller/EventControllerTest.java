@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -208,21 +209,23 @@ public class EventControllerTest {
 
     @Test
     void shouldJoinAndLeaveEvent() throws Exception {
-        String token = registerAndLogin();
-        long eventId = createEventAndReturnId(token);
+        String creatorUserToken = registerAndLogin();
+        long eventId = createEventAndReturnId(creatorUserToken);
 
         mockMvc.perform(post(EVENTS_URL)
-                        .header("Authorization", "Bearer " + token)
+                        .header("Authorization", "Bearer " + creatorUserToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validEvent())))
                 .andExpect(status().isCreated());
 
+        String userToken = registerAndLogin();
+
         mockMvc.perform(post(EVENTS_URL + "/" + eventId + "/participants")
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk());
 
         mockMvc.perform(delete(EVENTS_URL + "/" + eventId + "/participants/me")
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk());
     }
 
@@ -327,7 +330,7 @@ public class EventControllerTest {
     }
 
     @Test
-    void shouldAllowCreatorToJoinEvenIfFull() throws Exception {
+    void shouldNotAllowCreatorToJoinEvenIfFull() throws Exception {
         String token = registerAndLogin();
 
         EventRequestDto event = new EventRequestDto(
@@ -366,6 +369,6 @@ public class EventControllerTest {
 
         mockMvc.perform(post(EVENTS_URL + "/" + eventId + "/participants")
                         .header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk());
+                .andExpect(status().isForbidden());
     }
 }

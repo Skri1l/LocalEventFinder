@@ -178,10 +178,10 @@ public class EventServiceImpl implements EventService {
             throw new AccessDeniedException("You are not allowed to join this event");
         }
         if (event.getCreatedBy().getId().equals(user.getId())) {
-            throw new EntityNotFoundException("Event creator cant join event");
+            throw new AccessDeniedException("Event creator cant join event");
         }
         if (eventParticipantRepository.existsByEventIdAndUserId(eventId, user.getId())){
-            throw new EntityNotFoundException("User already joined this event");
+            throw new AccessDeniedException("User already joined this event");
         }
         long participantsCount = eventParticipantRepository.countByEventId(eventId);
         if (participantsCount >= event.getMaxParticipants()) {
