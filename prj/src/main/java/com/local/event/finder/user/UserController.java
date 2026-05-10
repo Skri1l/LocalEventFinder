@@ -25,11 +25,10 @@ public class UserController {
         return new ApiResponseDto<>(userService.getUserById(id));
     }
 
-    @PatchMapping("/{id}")
-    public ApiResponseDto<UserUpdateResponseDto> updateUser(@PathVariable Long id,
-                                                            @Valid @RequestBody UserUpdateRequestDto dto) {
+    @PatchMapping("/me")
+    public ApiResponseDto<UserUpdateResponseDto> updateUser(@Valid @RequestBody UserUpdateRequestDto dto) {
         log.info("UserController:update");
-        return new ApiResponseDto<>(userService.updateUser(id, dto));
+        return new ApiResponseDto<>(userService.updateUserCurrent(dto));
     }
 
     @DeleteMapping("/{id}")
