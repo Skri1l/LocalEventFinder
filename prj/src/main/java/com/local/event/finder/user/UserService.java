@@ -4,8 +4,8 @@ public interface UserService {
 
     UserResponseDto getUserById(Long id);
 
-    UserUpdateResponseDto updateUserCurrent(UserUpdateRequestDto dto);
+    UserUpdateResponseDto updateCurrentUser(UserUpdateRequestDto dto);
 
-    void deleteUser(Long id);
+    void deleteCurrentUser();
 
 }
