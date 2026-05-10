@@ -2,6 +2,8 @@ package com.local.event.finder.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.local.event.finder.event.EventRepository;
+import com.local.event.finder.event.participant.EventParticipantRepository;
 import com.local.event.finder.user.UserRepository;
 import com.local.event.finder.user.UserRequestDto;
 import com.local.event.finder.refreshToken.RefreshTokenRepository;
@@ -18,7 +20,9 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -48,12 +52,24 @@ public class EventControllerTest {
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
 
+    @Autowired
+    private EventRepository eventRepository;
+
+    @Autowired
+    private EventParticipantRepository eventParticipantRepository;
+
     private long id = 0;
 
     @BeforeEach
     void clean() {
-        refreshTokenRepository.deleteAll();
-        userRepository.deleteAll();
+        eventParticipantRepository.deleteAllInBatch();
+        eventParticipantRepository.flush();
+
+        eventRepository.deleteAllInBatch();
+        eventRepository.flush();
+
+        refreshTokenRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
     }
 
     private String registerAndLogin() throws Exception {
@@ -94,6 +110,26 @@ public class EventControllerTest {
                 Set.of(),
                 "https://img.com/event.png"
         );
+    }
+
+    private long createEventAndReturnId(String token) throws Exception {
+        MvcResult resultPost = mockMvc.perform(post(EVENTS_URL)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validEvent())))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        MvcResult resultGet = mockMvc.perform(get(EVENTS_URL)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode root = objectMapper.readTree(resultGet.getResponse().getContentAsString());
+        return root
+                .get(ROOT)
+                .get(0)
+                .get("id")
+                .asLong();
     }
 
     @Test
@@ -137,14 +173,9 @@ public class EventControllerTest {
     @Test
     void shouldGetEventById() throws Exception {
         String token = registerAndLogin();
+        long eventId = createEventAndReturnId(token);
 
-        mockMvc.perform(post(EVENTS_URL)
-                        .header("Authorization", "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validEvent())))
-                .andExpect(status().isCreated());
-
-        MvcResult result = mockMvc.perform(get(EVENTS_URL + "/1")
+        MvcResult result = mockMvc.perform(get(EVENTS_URL + "/" + eventId)
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -165,16 +196,11 @@ public class EventControllerTest {
     @Test
     void shouldUpdateEvent() throws Exception {
         String token = registerAndLogin();
-
-        mockMvc.perform(post(EVENTS_URL)
-                        .header("Authorization", "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validEvent())))
-                .andExpect(status().isCreated());
+        long eventId = createEventAndReturnId(token);
 
         EventRequestDto updated = validEvent();
 
-        mockMvc.perform(patch(EVENTS_URL + "/1")
+        mockMvc.perform(patch(EVENTS_URL + "/" + eventId)
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updated)))
@@ -184,48 +210,47 @@ public class EventControllerTest {
     @Test
     void shouldDeleteEvent() throws Exception {
         String token = registerAndLogin();
+        long eventId = createEventAndReturnId(token);
 
-        mockMvc.perform(post(EVENTS_URL)
-                        .header("Authorization", "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validEvent())))
-                .andExpect(status().isCreated());
-
-        mockMvc.perform(delete(EVENTS_URL + "/1")
+        mockMvc.perform(delete(EVENTS_URL + "/" + eventId)
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
     }
 
     @Test
     void shouldJoinAndLeaveEvent() throws Exception {
-        String token = registerAndLogin();
+        String creatorUserToken = registerAndLogin();
+        long eventId = createEventAndReturnId(creatorUserToken);
 
         mockMvc.perform(post(EVENTS_URL)
-                        .header("Authorization", "Bearer " + token)
+                        .header("Authorization", "Bearer " + creatorUserToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validEvent())))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(post(EVENTS_URL + "/1/participants")
-                        .header("Authorization", "Bearer " + token))
+        String userToken = registerAndLogin();
+
+        mockMvc.perform(post(EVENTS_URL + "/" + eventId + "/participants")
+                        .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(delete(EVENTS_URL + "/1/participants/me")
-                        .header("Authorization", "Bearer " + token))
+        mockMvc.perform(delete(EVENTS_URL + "/" + eventId + "/participants/me")
+                        .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk());
     }
 
     @Test
     void shouldGetParticipants() throws Exception {
         String token = registerAndLogin();
+        long eventId = createEventAndReturnId(token);
 
-        mockMvc.perform(get(EVENTS_URL + "/1/participants")
+        mockMvc.perform(get(EVENTS_URL + "/" + eventId+ "/participants")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
     }
 
     @Test
-    void shouldRejectJoin_whenAgeRestrictionNotMet() throws Exception {
+    void shouldNotGetEvent_whenAgeRestrictionNotMet() throws Exception {
         String token = registerAndLogin();
 
         EventRequestDto event = new EventRequestDto(
@@ -250,9 +275,17 @@ public class EventControllerTest {
                         .content(objectMapper.writeValueAsString(event)))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(post(EVENTS_URL + "/1/participants")
+        MvcResult resultGet = mockMvc.perform(get(EVENTS_URL)
                         .header("Authorization", "Bearer " + token))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode root = objectMapper.readTree(resultGet.getResponse().getContentAsString());
+
+        JsonNode data = root.get(ROOT);
+
+        assertNotNull(data);
+        assertTrue(data.isArray());
+        assertEquals(0, data.size());
     }
 
     @Test
@@ -281,17 +314,33 @@ public class EventControllerTest {
                         .content(objectMapper.writeValueAsString(event)))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(post(EVENTS_URL + "/1/participants")
+        MvcResult resultGet = mockMvc.perform(get(EVENTS_URL)
                         .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode root = objectMapper.readTree(resultGet.getResponse().getContentAsString());
+
+        long eventId = root
+                .get(ROOT)
+                .get(0)
+                .get("id")
+                .asLong();
+
+        String userToken1 = registerAndLogin();
+
+        mockMvc.perform(post(EVENTS_URL + "/" + eventId + "/participants")
+                        .header("Authorization", "Bearer " + userToken1))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(post(EVENTS_URL + "/1/participants")
-                        .header("Authorization", "Bearer " + token))
+        String userToken2 = registerAndLogin();
+
+        mockMvc.perform(post(EVENTS_URL + "/" + eventId + "/participants")
+                        .header("Authorization", "Bearer " + userToken2))
                 .andExpect(status().isConflict());
     }
 
     @Test
-    void shouldAllowCreatorToJoinEvenIfFull() throws Exception {
+    void shouldNotAllowCreatorToJoinEvenIfFull() throws Exception {
         String token = registerAndLogin();
 
         EventRequestDto event = new EventRequestDto(
@@ -316,8 +365,20 @@ public class EventControllerTest {
                         .content(objectMapper.writeValueAsString(event)))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(post(EVENTS_URL + "/1/participants")
+        MvcResult resultGet = mockMvc.perform(get(EVENTS_URL)
                         .header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode root = objectMapper.readTree(resultGet.getResponse().getContentAsString());
+
+        long eventId = root
+                .get(ROOT)
+                .get(0)
+                .get("id")
+                .asLong();
+
+        mockMvc.perform(post(EVENTS_URL + "/" + eventId + "/participants")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
     }
 }

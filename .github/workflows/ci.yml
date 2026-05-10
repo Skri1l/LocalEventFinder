@@ -30,3 +30,35 @@ jobs:
 
       - name: Build project
         run: mvn clean package -DskipTests
+
+  docker-tests:
+    runs-on: ubuntu-latest
+    needs: build
+
+    env:
+      POSTGRES_DB_TEST: testdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      SPRING_DATASOURCE_URL_TEST: jdbc:postgresql://postgres:5432/testdb
+      JWT_SECRET: testsecret
+
+    defaults:
+      run:
+        working-directory: prj
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run docker integration tests
+        run: |
+          POSTGRES_DB_TEST=${{ secrets.TEST_DB_NAME }} \
+          POSTGRES_USER=${{ secrets.TEST_DB_USER }} \
+          POSTGRES_PASSWORD=${{ secrets.TEST_DB_PASSWORD }} \
+          SPRING_DATASOURCE_URL_TEST=${{ secrets.TEST_DATASOURCE_URL }} \
+          JWT_SECRET=${{ secrets.TEST_JWT_SECRET }} \
+          docker compose -p testenv \
+            -f docker-compose.test.yml \
+            up --build \
+            --abort-on-container-exit \
+            --exit-code-from test

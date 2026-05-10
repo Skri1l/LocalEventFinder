@@ -1,6 +1,5 @@
 package com.local.event.finder.user;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -16,7 +15,10 @@ public record UserRequestDto(
         @Size(min = 3, max = 30, message = "username length must be from 3 to 30")
         String username,
 
-        @Email(message = "invalid email")
+        @Pattern(
+                regexp = "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+\\-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$",
+                message = "invalid email"
+        )
         @NotBlank(message = "email cant be empty")
         String email,
 

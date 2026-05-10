@@ -40,18 +40,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserUpdateResponseDto updateUser(Long id, UserUpdateRequestDto dto) {
-        Objects.requireNonNull(id,"User id cannot be null");
+    public UserUpdateResponseDto updateCurrentUser(UserUpdateRequestDto dto) {
         Objects.requireNonNull(dto,"User dto cannot be null");
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
-
-        if (!user.getId().equals(id)) {
-            throw new AccessDeniedException("You can only edit your own profile");
-        }
 
         if (dto.username() == null &&
                 dto.email() == null &&
@@ -98,16 +93,13 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void deleteUser(Long id){
-        Objects.requireNonNull(id,"User id cannot be null");
+    public void deleteCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
+
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        if (!user.getId().equals(id)) {
-            throw new AccessDeniedException("You can only delete your own profile");
-        }
         refreshTokenRepository.deleteByUser(user);
         userRepository.delete(user);
     }

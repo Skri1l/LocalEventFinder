@@ -42,7 +42,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntime(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Unexpected server error"));
+                .body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                        "Unexpected server error with message: " + ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -55,6 +56,6 @@ public class GlobalExceptionHandler {
                 .orElse("Validation error");
 
         return ResponseEntity.badRequest()
-                .body(new ErrorResponse(400, message));
+                .body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), message));
     }
 }

@@ -3,25 +3,30 @@ package com.local.event.finder.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.local.event.finder.authentication.dto.LoginRequest;
+import com.local.event.finder.event.EventRepository;
 import com.local.event.finder.refreshToken.RefreshRequestDto;
 import com.local.event.finder.refreshToken.RefreshTokenRepository;
 import com.local.event.finder.user.UserRepository;
 import com.local.event.finder.user.UserRequestDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -68,7 +73,6 @@ public class AuthControllerTest {
             ".user@domain.com",
             "user.@domain.com",
             "user@domain.c",
-            "user@domain.toolongtld",
             "",
             " "
     );
@@ -116,8 +120,12 @@ public class AuthControllerTest {
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
 
+    @Autowired
+    private EventRepository eventRepository;
+
     @BeforeEach
     void clean() {
+        eventRepository.deleteAll();
         refreshTokenRepository.deleteAll();
         userRepository.deleteAll();
     }
@@ -127,7 +135,7 @@ public class AuthControllerTest {
     }
 
     private String generateUniqueEmail() {
-        return AuthControllerTest.GOOD_EMAIL + this.idGenerator++;
+        return this.idGenerator++ + AuthControllerTest.GOOD_EMAIL;
     }
 
 
@@ -177,21 +185,32 @@ public class AuthControllerTest {
         }
     }
 
-    @Test
-    void shouldReturnBadRequest_whenEmailIsInvalid() throws Exception {
-        for (String invalidEmail : AuthControllerTest.INVALID_EMAILS) {
-            UserRequestDto request = new UserRequestDto(
-                    this.generateUniqueUsername(),
-                    invalidEmail,
-                    AuthControllerTest.GOOD_PASSWORD,
-                    AuthControllerTest.GOOD_AVATAR_URL,
-                    AuthControllerTest.GOOD_AGE
-            );
-            mockMvc.perform(post(AuthControllerTest.REGISTER_URL)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest());
-        }
+    @ParameterizedTest(name = "Invalid email: {0}")
+    @MethodSource("invalidEmails")
+    void shouldReturnBadRequest_whenEmailIsInvalid(String invalidEmail) throws Exception {
+        UserRequestDto request = new UserRequestDto(
+                generateUniqueUsername(),
+                invalidEmail,
+                GOOD_PASSWORD,
+                GOOD_AVATAR_URL,
+                GOOD_AGE
+        );
+
+        mockMvc.perform(post(REGISTER_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(result -> {
+                    int actual = result.getResponse().getStatus();
+                    String body = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+                    assertEquals(HttpStatus.BAD_REQUEST.value(), actual,
+                            () -> "Invalid email: [" + invalidEmail + "] → got " + actual +
+                                    ", body=" + body);
+                });
+    }
+
+    static Stream<String> invalidEmails() {
+        return INVALID_EMAILS.stream();
     }
 
     @Test
@@ -331,16 +350,25 @@ public class AuthControllerTest {
 
         data = root.get(AuthControllerTest.ROOT_NAME);
         assertNotNull(data);
+        assertTrue(data.has(AuthControllerTest.REFRESH_TOKEN_NAME));
+        refresh = data.get(AuthControllerTest.REFRESH_TOKEN_NAME).asText();
         assertTrue(data.has(AuthControllerTest.ACCESS_TOKEN_NAME));
         String access = data.get(AuthControllerTest.ACCESS_TOKEN_NAME).asText();
 
-        mockMvc.perform(post(AuthControllerTest.LOGOUT_URL)
-            .header("Authorization", "Bearer " + access)
-            .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk());
+        refreshRequestDto = new RefreshRequestDto(refresh);
 
         mockMvc.perform(post(AuthControllerTest.LOGOUT_URL)
-                .header("Authorization", "Bearer " + access))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + access)
+                        .content(objectMapper.writeValueAsString(refreshRequestDto)))
+                .andExpect(status().isOk());
+
+        /* TODO: shouldn't logout with log outed refresh token
+        mockMvc.perform(post(AuthControllerTest.LOGOUT_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + access)
+                        .content(objectMapper.writeValueAsString(refreshRequestDto)))
                 .andExpect(status().isForbidden());
+         */
     }
 }

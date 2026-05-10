@@ -1,6 +1,7 @@
 package com.local.event.finder.event.category;
 
 import com.local.event.finder.api.ApiResponseDto;
+import com.local.event.finder.api.StatusCreateResponseDto;
 import com.local.event.finder.api.StatusResponseDto;
 import com.local.event.finder.logging.AppLogger;
 import com.local.event.finder.logging.LoggerFactory;
@@ -27,11 +28,11 @@ public class CategoryController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponseDto<StatusResponseDto>> create(@Valid @RequestBody CategoryRequestDto dto) {
+    public ResponseEntity<ApiResponseDto<StatusCreateResponseDto>> create(@Valid @RequestBody CategoryRequestDto dto) {
         log.info("CategoryController:create");
-        categoryService.create(dto);
+        long id = categoryService.create(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponseDto<>(new StatusResponseDto("OK")));
+                .body(new ApiResponseDto<>(new StatusCreateResponseDto(id, "OK")));
     }
 
     @GetMapping

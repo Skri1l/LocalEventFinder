@@ -2,6 +2,10 @@ package com.local.event.finder.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.local.event.finder.event.EventRepository;
+import com.local.event.finder.event.participant.EventParticipantRepository;
+import com.local.event.finder.event.tag.TagDto;
+import com.local.event.finder.event.tag.TagRepository;
 import com.local.event.finder.refreshToken.RefreshTokenRepository;
 import com.local.event.finder.user.UserRepository;
 import com.local.event.finder.user.UserRequestDto;
@@ -41,11 +45,26 @@ public class TagControllerTest {
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
 
+    @Autowired
+    private TagRepository tagRepository;
+
+    @Autowired
+    EventParticipantRepository eventParticipantRepository;
+
+    @Autowired
+    EventRepository eventRepository;
+
     private long id = 0;
 
     @BeforeEach
     void clean() {
+        eventParticipantRepository.deleteAll();
+        eventRepository.deleteAll();
+
         refreshTokenRepository.deleteAll();
+
+        tagRepository.deleteAll();
+
         userRepository.deleteAll();
     }
 
@@ -75,16 +94,12 @@ public class TagControllerTest {
     void shouldCreateTag() throws Exception {
         String token = registerAndLogin();
 
-        String request = """
-                {
-                  "name": "Music"
-                }
-                """;
+        TagDto request = new TagDto("Music");
 
         mockMvc.perform(post(TAGS_URL)
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(request))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
     }
 
@@ -92,16 +107,12 @@ public class TagControllerTest {
     void shouldReturnBadRequest_whenInvalidTag() throws Exception {
         String token = registerAndLogin();
 
-        String request = """
-                {
-                  "name": ""
-                }
-                """;
+        TagDto request = new TagDto("");
 
         mockMvc.perform(post(TAGS_URL)
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(request))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -115,13 +126,18 @@ public class TagControllerTest {
     void shouldReturnListOfTags() throws Exception {
         String token = registerAndLogin();
 
+        TagDto request = new TagDto("Tech");
+
         mockMvc.perform(post(TAGS_URL)
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Tech\"}"))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        MvcResult result = mockMvc.perform(get(TAGS_URL))
+        MvcResult result = mockMvc.perform(get(TAGS_URL)
+                .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andReturn();
 

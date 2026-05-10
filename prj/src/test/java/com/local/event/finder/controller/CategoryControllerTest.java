@@ -2,7 +2,11 @@ package com.local.event.finder.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.local.event.finder.event.EventRepository;
 import com.local.event.finder.event.EventRequestDto;
+import com.local.event.finder.event.category.CategoryRepository;
+import com.local.event.finder.event.category.CategoryRequestDto;
+import com.local.event.finder.event.participant.EventParticipantRepository;
 import com.local.event.finder.refreshToken.RefreshTokenRepository;
 import com.local.event.finder.user.UserRepository;
 import com.local.event.finder.user.UserRequestDto;
@@ -47,12 +51,27 @@ public class CategoryControllerTest {
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
 
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
+    private EventParticipantRepository eventParticipantRepository;
+
+    @Autowired
+    private EventRepository eventRepository;
+
     private long id = 0;
 
     @BeforeEach
     void clean() {
+        eventParticipantRepository.deleteAll();
+        eventRepository.deleteAll();
+
         refreshTokenRepository.deleteAll();
+
         userRepository.deleteAll();
+
+        categoryRepository.deleteAll();
     }
 
     private String registerAndLogin() throws Exception {
@@ -96,68 +115,100 @@ public class CategoryControllerTest {
         );
     }
 
+    private long createEventAndReturnId(String token) throws Exception {
+        MvcResult resultPost = mockMvc.perform(post(EVENTS_URL)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validEvent())))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        MvcResult resultGet = mockMvc.perform(get(EVENTS_URL)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode root = objectMapper.readTree(resultGet.getResponse().getContentAsString());
+        return root
+                .get(ROOT)
+                .get(0)
+                .get("id")
+                .asLong();
+    }
+
     @Test
     void shouldCreateCategory() throws Exception {
         String token = registerAndLogin();
-
-        String request = """
-                {
-                  "name": "Sports"
-                }
-                """;
+        CategoryRequestDto request = new CategoryRequestDto("Sports");
 
         mockMvc.perform(post(CATEGORY_URL)
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(request))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
     }
 
     @Test
     void shouldReturnBadRequest_whenInvalidCategory() throws Exception {
         String token = registerAndLogin();
-
-        String request = """
-                {
-                  "name": ""
-                }
-                """;
+        CategoryRequestDto request = new CategoryRequestDto("");
 
         mockMvc.perform(post(CATEGORY_URL)
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(request))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    void shouldGetAllCategories_withoutAuth() throws Exception {
+    void shouldNotGetAllCategories_withoutAuth() throws Exception {
         mockMvc.perform(get(CATEGORY_URL))
-                .andExpect(status().isOk());
+                .andExpect(status().isForbidden());
     }
 
     @Test
     void shouldAssignAndRemoveCategoryFromEvent() throws Exception {
         String token = registerAndLogin();
+        CategoryRequestDto request = new CategoryRequestDto("Music");
+
+        MvcResult result = mockMvc.perform(post(CATEGORY_URL)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andReturn();
+        JsonNode root = objectMapper.readTree(result.getResponse().getContentAsString());
+
+        long categoryId = root
+                .get("data")
+                .get("id")
+                .asLong();
+
+        long eventId = this.createEventAndReturnId(token);
+
+        mockMvc.perform(post(EVENTS_URL + "/" + eventId + "/categories/" + categoryId)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(delete(EVENTS_URL + "/" + eventId + "/categories/" + categoryId)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldNotCreateSimilarCategories() throws Exception {
+        String token = registerAndLogin();
+        CategoryRequestDto request = new CategoryRequestDto("Music");
+
+        mockMvc.perform(post(CATEGORY_URL)
+                    .header("Authorization", "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isCreated());
 
         mockMvc.perform(post(CATEGORY_URL)
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Music\"}"))
-                .andExpect(status().isCreated());
-
-        mockMvc.perform(post(EVENTS_URL)
-                        .header("Authorization", "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validEvent())))
-                .andExpect(status().isCreated());
-
-        mockMvc.perform(post(EVENTS_URL + "/1/categories/1")
-                        .header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk());
-
-        mockMvc.perform(delete(EVENTS_URL + "/1/categories/1")
-                        .header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk());
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
     }
 }

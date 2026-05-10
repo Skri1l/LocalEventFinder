@@ -1,5 +1,7 @@
 package com.local.event.finder.authentication;
 
+import com.local.event.finder.api.ApiResponseDto;
+import com.local.event.finder.api.StatusResponseDto;
 import com.local.event.finder.authentication.dto.AuthResponse;
 import com.local.event.finder.authentication.dto.LoginRequest;
 import com.local.event.finder.refreshToken.RefreshRequestDto;
@@ -23,41 +25,25 @@ public class AuthController {
 
     private final AuthService authService;
 
-    /*
-    COMMENT: Response without wrapping.
-     */
     @PostMapping("/login")
-    public AuthResponse login(@Valid @RequestBody LoginRequest loginRequest) {
-        return authService.login(loginRequest);
+    public ApiResponseDto<AuthResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
+        return new ApiResponseDto<>(authService.login(loginRequest));
     }
 
-    /*
-    COMMENT: Response without wrapping.
-     */
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public AuthResponse register(@Valid @RequestBody UserRequestDto dto) {
-        return authService.register(dto);
+    public ApiResponseDto<AuthResponse> register(@Valid @RequestBody UserRequestDto dto) {
+        return new ApiResponseDto<>(authService.register(dto));
     }
 
-    /*
-    COMMENT: Response without wrapping.
-     */
     @PostMapping("/refresh")
-    public AuthResponse refresh(@Valid @RequestBody RefreshRequestDto dto){
-        return authService.refresh(dto);
+    public ApiResponseDto<AuthResponse> refresh(@Valid @RequestBody RefreshRequestDto dto) {
+        return new ApiResponseDto<>(authService.refresh(dto));
     }
 
-    /*
-    COMMENT: No response. need to be as in the documentation.
-    {
-      "data": {
-        "status": "OK"
-      }
-    }
-     */
     @PostMapping("/logout")
-    public void logout(@RequestBody RefreshRequestDto dto){
+    public ApiResponseDto<StatusResponseDto> logout(@RequestBody RefreshRequestDto dto) {
         authService.logout(dto);
+        return new ApiResponseDto<>(new StatusResponseDto("OK"));
     }
 }
