@@ -2,6 +2,8 @@ package com.local.event.finder.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.local.event.finder.event.EventRepository;
+import com.local.event.finder.event.participant.EventParticipantRepository;
 import com.local.event.finder.event.tag.TagDto;
 import com.local.event.finder.event.tag.TagRepository;
 import com.local.event.finder.refreshToken.RefreshTokenRepository;
@@ -46,13 +48,24 @@ public class TagControllerTest {
     @Autowired
     private TagRepository tagRepository;
 
+    @Autowired
+    EventParticipantRepository eventParticipantRepository;
+
+    @Autowired
+    EventRepository eventRepository;
+
     private long id = 0;
 
     @BeforeEach
     void clean() {
+        eventParticipantRepository.deleteAll();
+        eventRepository.deleteAll();
+
         refreshTokenRepository.deleteAll();
-        userRepository.deleteAll();
+
         tagRepository.deleteAll();
+
+        userRepository.deleteAll();
     }
 
     private String registerAndLogin() throws Exception {
