@@ -52,11 +52,11 @@ jobs:
 
       - name: Run docker integration tests
         run: |
-          POSTGRES_DB_TEST=testdb \
-          POSTGRES_USER=postgres \
-          POSTGRES_PASSWORD=postgres \
-          SPRING_DATASOURCE_URL_TEST=jdbc:postgresql://postgres-test:5432/testdb \
-          JWT_SECRET=VGhpcy1pcy1zdXBlci10ZXN0LWtleS1mb3Itand0LXNpZ25pbmctbm90LXNlY3VyZS1sb2w= \
+          POSTGRES_DB_TEST=${{ secrets.TEST_DB_NAME }} \
+          POSTGRES_USER=${{ secrets.TEST_DB_USER }} \
+          POSTGRES_PASSWORD=${{ secrets.TEST_DB_PASSWORD }} \
+          SPRING_DATASOURCE_URL_TEST=${{ secrets.TEST_DATASOURCE_URL }} \
+          JWT_SECRET=${{ secrets.TEST_JWT_SECRET }} \
           docker compose -p testenv \
             -f docker-compose.test.yml \
             up --build \
