@@ -3,6 +3,7 @@ package com.local.event.finder.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.local.event.finder.event.EventRepository;
+import com.local.event.finder.event.participant.EventParticipantRepository;
 import com.local.event.finder.user.UserRepository;
 import com.local.event.finder.user.UserRequestDto;
 import com.local.event.finder.refreshToken.RefreshTokenRepository;
@@ -19,12 +20,13 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -53,13 +55,21 @@ public class EventControllerTest {
     @Autowired
     private EventRepository eventRepository;
 
+    @Autowired
+    private EventParticipantRepository eventParticipantRepository;
+
     private long id = 0;
 
     @BeforeEach
     void clean() {
-        eventRepository.deleteAll();
-        refreshTokenRepository.deleteAll();
-        userRepository.deleteAll();
+        eventParticipantRepository.deleteAllInBatch();
+        eventParticipantRepository.flush();
+
+        eventRepository.deleteAllInBatch();
+        eventRepository.flush();
+
+        refreshTokenRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
     }
 
     private String registerAndLogin() throws Exception {
@@ -240,7 +250,7 @@ public class EventControllerTest {
     }
 
     @Test
-    void shouldRejectJoin_whenAgeRestrictionNotMet() throws Exception {
+    void shouldNotGetEvent_whenAgeRestrictionNotMet() throws Exception {
         String token = registerAndLogin();
 
         EventRequestDto event = new EventRequestDto(
@@ -271,15 +281,11 @@ public class EventControllerTest {
                 .andReturn();
         JsonNode root = objectMapper.readTree(resultGet.getResponse().getContentAsString());
 
-        long eventId = root
-                .get(ROOT)
-                .get(0)
-                .get("id")
-                .asLong();
+        JsonNode data = root.get(ROOT);
 
-        mockMvc.perform(post(EVENTS_URL + "/" + eventId + "/participants")
-                        .header("Authorization", "Bearer " + token))
-                .andExpect(status().isForbidden());
+        assertNotNull(data);
+        assertTrue(data.isArray());
+        assertEquals(0, data.size());
     }
 
     @Test
@@ -320,12 +326,16 @@ public class EventControllerTest {
                 .get("id")
                 .asLong();
 
-        mockMvc.perform(post(EVENTS_URL + "/" + eventId + "/participants")
-                        .header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk());
+        String userToken1 = registerAndLogin();
 
         mockMvc.perform(post(EVENTS_URL + "/" + eventId + "/participants")
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + userToken1))
+                .andExpect(status().isOk());
+
+        String userToken2 = registerAndLogin();
+
+        mockMvc.perform(post(EVENTS_URL + "/" + eventId + "/participants")
+                        .header("Authorization", "Bearer " + userToken2))
                 .andExpect(status().isConflict());
     }
 
