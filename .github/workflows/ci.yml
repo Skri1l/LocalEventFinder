@@ -56,7 +56,7 @@ jobs:
           POSTGRES_USER=postgres \
           POSTGRES_PASSWORD=postgres \
           SPRING_DATASOURCE_URL_TEST=jdbc:postgresql://postgres-test:5432/testdb \
-          JWT_SECRET=testsecret \
+          JWT_SECRET=VGhpcy1pcy1zdXBlci10ZXN0LWtleS1mb3Itand0LXNpZ25pbmctbm90LXNlY3VyZS1sb2w= \
           docker compose -p testenv \
             -f docker-compose.test.yml \
             up --build \
