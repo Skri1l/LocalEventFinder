@@ -12,6 +12,7 @@ import com.local.event.finder.refreshToken.RefreshTokenService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -68,14 +69,16 @@ public class AuthService {
     @Transactional
     public AuthResponse login(LoginRequest request) {
         Objects.requireNonNull(request, "Request must not be null");
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new AccessDeniedException("There is no user with  " + request.email() + " email"));
+
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(request.email(), request.password());
         Authentication authentication = authenticationManager.authenticate(token);
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
         String accessToken = jwtService.generateToken(userDetails);
-        String email = userDetails.getUsername();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException("Email " + email + " not found"));
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
+
         return new AuthResponse(accessToken, refreshToken.getToken(), expiration);
     }
 
