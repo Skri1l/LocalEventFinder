@@ -541,7 +541,7 @@ If everything OK **Response:**
 
 **GET** `/categories`
 
-**Requires authorization:** No
+**Requires authorization:** Yes
 
 **Response:**
 
@@ -618,7 +618,7 @@ If everything OK **Response:**
 
 **GET** `/tags`
 
-**Requires authorization:** No
+**Requires authorization:** Yes
 
 **Response:**
 

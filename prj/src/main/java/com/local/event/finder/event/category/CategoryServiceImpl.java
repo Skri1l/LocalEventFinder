@@ -15,7 +15,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional
-    public void create(CategoryRequestDto categoryDto) {
+    public long create(CategoryRequestDto categoryDto) {
         Objects.requireNonNull(categoryDto, "Category cannot be null");
 
         String name = categoryDto.name().trim();
@@ -26,7 +26,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = new Category();
         category.setName(categoryDto.name().trim());
 
-        categoryRepository.save(category);
+        return categoryRepository.save(category).getId();
     }
 
     @Override

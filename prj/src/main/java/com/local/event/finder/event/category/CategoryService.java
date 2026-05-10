@@ -4,7 +4,7 @@ import java.util.List;
 
 public interface CategoryService {
 
-    void create(CategoryRequestDto dto);
+    long create(CategoryRequestDto dto);
 
     List<CategoryResponseDto> getAll();
 }
