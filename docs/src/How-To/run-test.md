@@ -3,12 +3,6 @@
 Before starting you need to:
 - [Create .env file](./create-env.md)
 
-## Build project without running tests
-
-```bash
-mvn clean package -DskipTests=true
-```
-
 ## Run docker
 
 ```bash
