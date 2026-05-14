@@ -8,6 +8,7 @@ Backend repository for `Local Event Finder` project.
   - [Create .env file](./docs/src/How-To/create-env.md)
   - [Build and Run Application](./docs/src/How-To/build-and-run.md)
   - [Run tests](./docs/src/How-To/run-test.md)
+  - [Get test coverage](./docs/src/How-To/get-test-coverage.md)
 - Reference:
   - [DataBase Design](./docs/src/Reference/database-design/description.md)
   - [API](./docs/src/Reference/api/api.md)
