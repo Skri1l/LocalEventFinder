@@ -3,12 +3,14 @@ package com.local.event.finder.security;
 import com.local.event.finder.user.User;
 import com.local.event.finder.user.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.Collections;
+import java.util.List;
 
 @AllArgsConstructor
 @Service
@@ -24,7 +26,8 @@ public class CustomUserDetailsService implements UserDetailsService {
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getEmail())
                 .password(user.getPasswordHash())
-                .authorities(Collections.emptyList())
+                .authorities(List.of(new SimpleGrantedAuthority("ROLE_" +user.getRole())))
+                .disabled(user.isBlocked())
                 .build();
     }
 }
