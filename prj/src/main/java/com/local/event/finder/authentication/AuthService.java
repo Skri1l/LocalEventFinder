@@ -9,6 +9,7 @@ import com.local.event.finder.user.User;
 import com.local.event.finder.user.UserRepository;
 import com.local.event.finder.security.JwtService;
 import com.local.event.finder.refreshToken.RefreshTokenService;
+import com.local.event.finder.user.UserRole;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,6 +59,8 @@ public class AuthService {
         user.setPasswordHash(passwordEncoder.encode(userDto.password()));
         user.setAvatarUrl(userDto.avatarUrl());
         user.setAge(userDto.age());
+        user.setRole("USER");
+        user.setBlocked(false);
         User savedUser = userRepository.save(user);
         String email = savedUser.getEmail();
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);

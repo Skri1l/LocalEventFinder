@@ -35,7 +35,9 @@ public class UserServiceImpl implements UserService {
                 user.getUsername(),
                 user.getEmail(),
                 user.getAvatarUrl(),
-                user.getAge()
+                user.getAge(),
+                user.getRole(),
+                user.isBlocked()
         );
     }
 
@@ -87,7 +89,9 @@ public class UserServiceImpl implements UserService {
                 user.getUsername(),
                 user.getEmail(),
                 user.getAvatarUrl(),
-                user.getAge()
+                user.getAge(),
+                user.getRole(),
+                user.isBlocked()
         );
     }
 

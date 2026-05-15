@@ -10,5 +10,9 @@ public record UserResponseDto (
 
         String imageUrl,
 
-        int age
+        int age,
+
+        String role,
+
+        boolean isBlocked
 ){}

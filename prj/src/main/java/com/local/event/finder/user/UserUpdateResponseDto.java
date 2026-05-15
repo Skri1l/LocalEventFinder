@@ -5,5 +5,7 @@ public record UserUpdateResponseDto(
         String username,
         String email,
         String avatarUrl,
-        int age
+        int age,
+        String role,
+        boolean isBlocked
 ) {}

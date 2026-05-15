@@ -1,6 +1,8 @@
 package com.local.event.finder.user;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Table;
@@ -46,6 +48,12 @@ public class User {
 
     @URL
     private String avatarUrl;
+
+    @Column(nullable = false)
+    private String role = "USER";
+
+    @Column(nullable = false)
+    private boolean isBlocked;
 
     @Column(nullable = false)
     @Min(0)
