@@ -498,6 +498,37 @@ If everything OK **Response:**
 {
   "data": [
     {
+      "id": 12,
+      "title": "Music Festival",
+      "description": "Outdoor event",
+      "latitude": 54.6872,
+      "longitude": 25.2797,
+      "start_time": "2026-06-01T10:00:00Z",
+      "end_time": "2026-06-01T18:00:00Z",
+      "max_participants": 100,
+      "age_restriction": 18,
+      "image_url": "...",
+      "status": "upcoming",
+      "created_by": 27,
+      "created_at": "2026-06-01T10:00:00Z"
+    },
+    /* etc. */
+  ]
+}
+```
+
+### Get Joined event
+
+**GET** `/events/me`
+
+**Requires authorization:** Yes
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
       "username": "john_doe",
       "email": "john@example.com",
       "avatar_url": "https://example.com/avatar.png",

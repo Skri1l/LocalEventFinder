@@ -97,6 +97,17 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<EventResponseDto> getByCurrentUser() {
+        User user = getCurrentUser();
+
+        return eventParticipantRepository.findAllByUserId(user.getId())
+                .stream()
+                .map(this::toEventResponseDto)
+                .toList();
+    }
+
+    @Override
     @Transactional
     public EventResponseDto update(Long id, EventRequestDto eventDto) {
         Objects.requireNonNull(id, "Event id cannot be null");
@@ -156,6 +167,11 @@ public class EventServiceImpl implements EventService {
                 null,
                 event.getCreatedAt()
         );
+    }
+
+
+    private EventResponseDto toEventResponseDto(EventParticipant participant) {
+        return this.toResponseDto(participant.getEvent());
     }
 
 
