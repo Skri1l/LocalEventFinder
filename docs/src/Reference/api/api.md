@@ -578,6 +578,7 @@ If everything OK **Response:**
 {
   "data": [
     {
+      "id": 67,
       "name": "Sports"
     },
     /* etc. */
@@ -656,6 +657,7 @@ If everything OK **Response:**
 {
   "data": [
     {
+      "id": 67,
       "name": "Outdoor"
     },
     /* etc. */

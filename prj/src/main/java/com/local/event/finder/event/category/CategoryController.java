@@ -2,7 +2,6 @@ package com.local.event.finder.event.category;
 
 import com.local.event.finder.api.ApiResponseDto;
 import com.local.event.finder.api.StatusCreateResponseDto;
-import com.local.event.finder.api.StatusResponseDto;
 import com.local.event.finder.logging.AppLogger;
 import com.local.event.finder.logging.LoggerFactory;
 import jakarta.validation.Valid;

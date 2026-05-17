@@ -2,7 +2,6 @@ package com.local.event.finder.event.tag;
 
 import com.local.event.finder.api.ApiResponseDto;
 import com.local.event.finder.api.StatusCreateResponseDto;
-import com.local.event.finder.api.StatusResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

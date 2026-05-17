@@ -1,4 +1,4 @@
 package com.local.event.finder.event.category;
 
-public record CategoryResponseDto(String name) {
+public record CategoryResponseDto(long id, String name) {
 }
