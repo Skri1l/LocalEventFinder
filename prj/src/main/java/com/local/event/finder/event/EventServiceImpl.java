@@ -39,7 +39,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
-    public void create(EventRequestDto eventDto) {
+    public long create(EventRequestDto eventDto) {
         Objects.requireNonNull(eventDto, "Event cannot be null");
 
         if(eventRepository.existsByTitleAndStartTimeAndEndTimeAndLatitudeAndLongitude(
@@ -69,6 +69,7 @@ public class EventServiceImpl implements EventService {
         event.setCreatedBy(user);
 
         eventRepository.save(event);
+        return event.getId();
     }
 
     @Override

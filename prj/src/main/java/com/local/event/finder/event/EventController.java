@@ -1,6 +1,7 @@
 package com.local.event.finder.event;
 
 import com.local.event.finder.api.ApiResponseDto;
+import com.local.event.finder.api.StatusCreateResponseDto;
 import com.local.event.finder.api.StatusResponseDto;
 import com.local.event.finder.logging.AppLogger;
 import com.local.event.finder.logging.LoggerFactory;
@@ -34,11 +35,11 @@ public class EventController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponseDto<StatusResponseDto>> create(@Valid @RequestBody EventRequestDto eventDto){
+    public ResponseEntity<ApiResponseDto<StatusCreateResponseDto>> create(@Valid @RequestBody EventRequestDto eventDto){
         log.info("EventController:create");
-        eventService.create(eventDto);
+        long eventId = eventService.create(eventDto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponseDto<>(new StatusResponseDto("OK")));
+                .body(new ApiResponseDto<>(new StatusCreateResponseDto(eventId, "OK")));
     }
 
     @GetMapping("/{id}")

@@ -320,18 +320,15 @@ If everything OK **Response:**
   "max_participants": 100,
   "age_restriction": 18,
   "image_url": "...",
-  "status": "upcoming",
-  "user_id": 27
+  "status": "upcoming"
 }
 ```
-
-> for first versions uses user_id for created_by -> in future removes from api   
-> `created_by` tooks from tocken
 
 **Responce:**
 ```json
 {
   "data": {
+    "id": 67,
     "status": "OK"
   }
 }
@@ -521,6 +518,7 @@ If everything OK **Response:**
 
 ```json
 {
+  "id": 67,
   "name": "Sports"
 }
 ```
@@ -598,6 +596,7 @@ If everything OK **Response:**
 
 ```json
 {
+  "id": 67,
   "name": "Outdoor"
 }
 ```

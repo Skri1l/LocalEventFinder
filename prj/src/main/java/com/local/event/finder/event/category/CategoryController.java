@@ -30,9 +30,9 @@ public class CategoryController {
     @PostMapping
     public ResponseEntity<ApiResponseDto<StatusCreateResponseDto>> create(@Valid @RequestBody CategoryRequestDto dto) {
         log.info("CategoryController:create");
-        long id = categoryService.create(dto);
+        long categoryId = categoryService.create(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponseDto<>(new StatusCreateResponseDto(id, "OK")));
+                .body(new ApiResponseDto<>(new StatusCreateResponseDto(categoryId, "OK")));
     }
 
     @GetMapping

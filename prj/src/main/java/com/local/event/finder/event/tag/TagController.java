@@ -1,6 +1,7 @@
 package com.local.event.finder.event.tag;
 
 import com.local.event.finder.api.ApiResponseDto;
+import com.local.event.finder.api.StatusCreateResponseDto;
 import com.local.event.finder.api.StatusResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +22,9 @@ public class TagController {
     private  final TagService tagService;
 
     @PostMapping
-    public ResponseEntity<ApiResponseDto<StatusResponseDto>> create(@Valid @RequestBody TagDto dto) {
-        tagService.create(dto);
-        return ResponseEntity.ok(new ApiResponseDto<>(new StatusResponseDto("OK")));
+    public ResponseEntity<ApiResponseDto<StatusCreateResponseDto>> create(@Valid @RequestBody TagDto dto) {
+        long tagId = tagService.create(dto);
+        return ResponseEntity.ok(new ApiResponseDto<>(new StatusCreateResponseDto(tagId, "OK")));
     }
 
     @GetMapping

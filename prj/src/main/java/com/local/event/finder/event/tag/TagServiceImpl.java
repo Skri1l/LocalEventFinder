@@ -15,7 +15,7 @@ public class TagServiceImpl implements TagService {
 
     @Override
     @Transactional
-    public void create(TagDto dto){
+    public long create(TagDto dto){
         Objects.requireNonNull(dto, "Tag can't be null");
 
         String name = dto.name().trim();
@@ -31,6 +31,7 @@ public class TagServiceImpl implements TagService {
         Tag tag = new Tag();
         tag.setName(name);
         tagRepository.save(tag);
+        return tag.getId();
     }
 
     @Override

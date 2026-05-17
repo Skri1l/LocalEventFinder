@@ -123,14 +123,9 @@ public class CategoryControllerTest {
                 .andExpect(status().isCreated())
                 .andReturn();
 
-        MvcResult resultGet = mockMvc.perform(get(EVENTS_URL)
-                        .header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk())
-                .andReturn();
-        JsonNode root = objectMapper.readTree(resultGet.getResponse().getContentAsString());
+        JsonNode root = objectMapper.readTree(resultPost.getResponse().getContentAsString());
         return root
                 .get(ROOT)
-                .get(0)
                 .get("id")
                 .asLong();
     }
@@ -179,7 +174,7 @@ public class CategoryControllerTest {
         JsonNode root = objectMapper.readTree(result.getResponse().getContentAsString());
 
         long categoryId = root
-                .get("data")
+                .get(ROOT)
                 .get("id")
                 .asLong();
 
