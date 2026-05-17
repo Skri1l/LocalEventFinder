@@ -8,6 +8,8 @@ import com.local.event.finder.user.UserRepository;
 import com.local.event.finder.user.UserRequestDto;
 import com.local.event.finder.refreshToken.RefreshTokenRepository;
 import com.local.event.finder.event.EventRequestDto;
+import com.local.event.finder.event.EventResponseDto;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,11 +20,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Set;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -375,5 +380,81 @@ public class EventControllerTest {
         mockMvc.perform(post(EVENTS_URL + "/" + eventId + "/participants")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldGetAllEventsThatJoined() throws Exception {
+        String joinedEventName = "Joined Event Name";
+        String notJoinedEventName = "Not Joined Event Name";
+
+        String token = registerAndLogin();
+
+        EventRequestDto joinedEvent = new EventRequestDto(
+                joinedEventName,
+                "Description",
+                54.6,
+                25.2,
+                "Lithuania",
+                "Vilnius",
+                LocalDateTime.now().plusDays(1),
+                LocalDateTime.now().plusDays(2),
+                10,
+                18,
+                Set.of(),
+                Set.of(),
+                "https://img.com/event.png"
+        );
+        
+        MvcResult resultPost = mockMvc.perform(post(EVENTS_URL)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(joinedEvent)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        JsonNode root = objectMapper.readTree(resultPost.getResponse().getContentAsString());
+        long joinedEventId = root.get(ROOT).get("id").asLong();
+
+        mockMvc.perform(post(EVENTS_URL + "/" + joinedEventId + "/participants")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+
+        EventRequestDto notJoinedEvent = new EventRequestDto(
+                notJoinedEventName,
+                "Description",
+                54.6,
+                25.2,
+                "Lithuania",
+                "Vilnius",
+                LocalDateTime.now().plusDays(1),
+                LocalDateTime.now().plusDays(2),
+                10,
+                18,
+                Set.of(),
+                Set.of(),
+                "https://img.com/event.png"
+        );
+        
+        mockMvc.perform(post(EVENTS_URL)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(notJoinedEvent)))
+                .andExpect(status().isCreated());
+
+        MvcResult resultJoinedEvents = mockMvc.perform(get(EVENTS_URL + "/me")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn();
+        root = objectMapper.readTree(resultJoinedEvents.getResponse().getContentAsString());
+
+        JsonNode events = root.get(ROOT);
+
+        List<String> titles = new ArrayList<>();
+        events.forEach(e -> titles.add(e.get("title").asText()));
+        System.out.println("json: " + resultJoinedEvents.getResponse().getContentAsString());
+        System.out.println("events: " + events);
+        assertThat(titles)
+                .contains(joinedEventName)
+                .doesNotContain(notJoinedEventName);
     }
 }
