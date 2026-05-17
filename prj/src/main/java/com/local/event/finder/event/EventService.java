@@ -12,6 +12,8 @@ public interface EventService {
 
     List<EventResponseDto> getAll();
 
+    List<EventResponseDto> getByCurrentUser();
+
     EventResponseDto update(Long id, EventRequestDto eventDto);
 
     void delete(Long id);

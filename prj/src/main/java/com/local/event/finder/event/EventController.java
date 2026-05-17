@@ -49,6 +49,13 @@ public class EventController {
         return new ApiResponseDto<>(eventService.getEventResponseById(id));
     }
 
+    @GetMapping("/me")
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponseDto<List<EventResponseDto>> getEventsByCurrentUser(){
+        log.info("EventController:getByCurrentUser");
+        return new ApiResponseDto<>(eventService.getByCurrentUser());
+    }
+
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public ApiResponseDto<List<EventResponseDto>> getAllEvents(){
