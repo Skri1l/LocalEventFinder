@@ -18,7 +18,7 @@ public class CategoryInitializer implements CommandLineRunner {
         "Food"
     );
 
-    private CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
 
 
     @Override
