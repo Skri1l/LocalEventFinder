@@ -387,7 +387,8 @@ public class EventControllerTest {
         String joinedEventName = "Joined Event Name";
         String notJoinedEventName = "Not Joined Event Name";
 
-        String token = registerAndLogin();
+        String creatorToken = registerAndLogin();
+        String userToken = registerAndLogin();
 
         EventRequestDto joinedEvent = new EventRequestDto(
                 joinedEventName,
@@ -406,7 +407,7 @@ public class EventControllerTest {
         );
         
         MvcResult resultPost = mockMvc.perform(post(EVENTS_URL)
-                        .header("Authorization", "Bearer " + token)
+                        .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(joinedEvent)))
                 .andExpect(status().isCreated())
@@ -416,8 +417,8 @@ public class EventControllerTest {
         long joinedEventId = root.get(ROOT).get("id").asLong();
 
         mockMvc.perform(post(EVENTS_URL + "/" + joinedEventId + "/participants")
-                        .header("Authorization", "Bearer " + token))
-                .andExpect(status().isForbidden());
+                        .header("Authorization", "Bearer " + userToken))
+                .andExpect(status().isOk());
 
         EventRequestDto notJoinedEvent = new EventRequestDto(
                 notJoinedEventName,
@@ -436,13 +437,13 @@ public class EventControllerTest {
         );
         
         mockMvc.perform(post(EVENTS_URL)
-                        .header("Authorization", "Bearer " + token)
+                        .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(notJoinedEvent)))
                 .andExpect(status().isCreated());
 
         MvcResult resultJoinedEvents = mockMvc.perform(get(EVENTS_URL + "/me")
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk())
                 .andReturn();
         root = objectMapper.readTree(resultJoinedEvents.getResponse().getContentAsString());
@@ -451,8 +452,7 @@ public class EventControllerTest {
 
         List<String> titles = new ArrayList<>();
         events.forEach(e -> titles.add(e.get("title").asText()));
-        System.out.println("json: " + resultJoinedEvents.getResponse().getContentAsString());
-        System.out.println("events: " + events);
+        
         assertThat(titles)
                 .contains(joinedEventName)
                 .doesNotContain(notJoinedEventName);
