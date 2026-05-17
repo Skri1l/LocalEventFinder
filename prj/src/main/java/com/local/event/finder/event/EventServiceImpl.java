@@ -101,9 +101,9 @@ public class EventServiceImpl implements EventService {
     public List<EventResponseDto> getByCurrentUser() {
         User user = getCurrentUser();
 
-        return eventRepository.findAllByParticipants_Id(user.getId())
+        return eventParticipantRepository.findAllByUserId(user.getId())
                 .stream()
-                .map(this::toResponseDto)
+                .map(this::toEventResponseDto)
                 .toList();
     }
 
@@ -167,6 +167,11 @@ public class EventServiceImpl implements EventService {
                 null,
                 event.getCreatedAt()
         );
+    }
+
+
+    private EventResponseDto toEventResponseDto(EventParticipant participant) {
+        return this.toResponseDto(participant.getEvent());
     }
 
 
