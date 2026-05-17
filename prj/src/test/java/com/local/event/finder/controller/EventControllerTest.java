@@ -452,7 +452,7 @@ public class EventControllerTest {
 
         List<String> titles = new ArrayList<>();
         events.forEach(e -> titles.add(e.get("title").asText()));
-        
+
         assertThat(titles)
                 .contains(joinedEventName)
                 .doesNotContain(notJoinedEventName);
