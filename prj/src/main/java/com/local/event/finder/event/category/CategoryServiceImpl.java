@@ -33,7 +33,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public List<CategoryResponseDto> getAll() {
         return categoryRepository.findAll().stream()
-                .map(category -> new CategoryResponseDto(category.getName()))
+                .map(category -> new CategoryResponseDto(category.getId(), category.getName()))
                 .toList();
     }
 }

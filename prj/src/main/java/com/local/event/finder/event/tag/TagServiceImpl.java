@@ -38,7 +38,7 @@ public class TagServiceImpl implements TagService {
     @Transactional
     public List<TagDto> getAll(){
         return tagRepository.findAll().stream()
-                .map(tag -> new TagDto(tag.getName()))
+                .map(tag -> new TagDto(tag.getId(), tag.getName()))
                 .toList();
     }
 }

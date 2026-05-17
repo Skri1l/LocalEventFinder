@@ -23,6 +23,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 public class TagControllerTest {
@@ -94,7 +97,9 @@ public class TagControllerTest {
     void shouldCreateTag() throws Exception {
         String token = registerAndLogin();
 
-        TagDto request = new TagDto("Music");
+        /* Used map because there is no longer DTO for tag request */
+        Map<String, Object> request = new HashMap<>();
+        request.put("name", "Campfire   ");
 
         mockMvc.perform(post(TAGS_URL)
                         .header("Authorization", "Bearer " + token)
@@ -107,7 +112,9 @@ public class TagControllerTest {
     void shouldReturnBadRequest_whenInvalidTag() throws Exception {
         String token = registerAndLogin();
 
-        TagDto request = new TagDto("");
+        /* Used map because there is no longer DTO for tag request */
+        Map<String, Object> request = new HashMap<>();
+        request.put("name", "");
 
         mockMvc.perform(post(TAGS_URL)
                         .header("Authorization", "Bearer " + token)
@@ -126,7 +133,9 @@ public class TagControllerTest {
     void shouldReturnListOfTags() throws Exception {
         String token = registerAndLogin();
 
-        TagDto request = new TagDto("Tech");
+        /* Used map because there is no longer DTO for tag request */
+        Map<String, Object> request = new HashMap<>();
+        request.put("name", "Tech");
 
         mockMvc.perform(post(TAGS_URL)
                         .header("Authorization", "Bearer " + token)
