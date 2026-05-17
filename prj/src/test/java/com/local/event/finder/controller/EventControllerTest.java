@@ -120,14 +120,9 @@ public class EventControllerTest {
                 .andExpect(status().isCreated())
                 .andReturn();
 
-        MvcResult resultGet = mockMvc.perform(get(EVENTS_URL)
-                        .header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk())
-                .andReturn();
-        JsonNode root = objectMapper.readTree(resultGet.getResponse().getContentAsString());
+        JsonNode root = objectMapper.readTree(resultPost.getResponse().getContentAsString());
         return root
                 .get(ROOT)
-                .get(0)
                 .get("id")
                 .asLong();
     }
