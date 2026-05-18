@@ -163,6 +163,85 @@ Authorization: Bearer <access_token>
 }
 ```
 
+## Password Recovery
+
+### Request Password Reset
+
+**POST** `/auth/forgot-password`
+
+**Requires authorization:** No
+
+**Request:**
+
+```json
+{
+  "email": "john@example.com"
+}
+```
+
+**Response:**
+
+```json
+{
+  "data": {
+    "status": "OK",
+    "message": "If an account with this email exists, a reset link has been sent."
+  }
+}
+```
+
+### Reset Password
+
+**POST** `/auth/reset-password`
+
+**Requires authorization:** No
+
+**Request:**
+
+```json
+{
+  "token": "reset-token",
+  "password": "NewStrongPassword123!"
+}
+```
+
+**Response:**
+
+```json
+{
+  "data": {
+    "status": "OK"
+  }
+}
+```
+
+**Error response:**
+
+```json
+{
+  "error": {
+    "code": "INVALID_TOKEN",
+    "message": "Reset token is invalid or expired."
+  }
+}
+```
+
+---
+
+### Password Recovery Flow
+
+```text
+POST /auth/forgot-password
+        ↓
+email with reset link
+        ↓
+frontend opens page:
+https://app.com/reset-password?token=xxx
+        ↓
+POST /auth/reset-password
+```
+
+
 ## Users
 
 ### Get User
