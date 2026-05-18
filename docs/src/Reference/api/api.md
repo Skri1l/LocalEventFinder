@@ -376,8 +376,8 @@ If everything OK **Response:**
 &country=Lithuania
 &category_id=uuid
 &tag_id=uuid
-&date_from=2026-01-01
-&date_to=2026-12-31
+&date_from=2026-05-18T10:00:00
+&date_to=2026-05-18T11:00:00
 &limit=20
 &offset=0
 ```

@@ -15,6 +15,11 @@ import com.local.event.finder.event.participant.EventParticipantRepository;
 import com.local.event.finder.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -87,11 +92,20 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<EventResponseDto> getAll() {
+    public List<EventResponseDto> getAll(EventFilterRequestDto filter) {
+
         User user = getCurrentUser();
-        return eventRepository.findAll()
+
+        Pageable pageable = PageRequest.of(
+                filter.getOffset() / filter.getLimit(),
+                filter.getLimit()
+        );
+
+        Specification<Event> specification =
+                EventSpecification.withFilters(filter, user.getAge());
+
+        return eventRepository.findAll(specification, pageable)
                 .stream()
-                .filter(event -> event.getAgeRestriction() <= user.getAge())
                 .map(this::toResponseDto)
                 .toList();
     }
