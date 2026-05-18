@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -78,11 +79,11 @@ public class EventController {
 
                     @RequestParam(name = "date_from", required = false)
                     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                    LocalDate dateFrom,
+                    LocalDateTime dateFrom,
 
                     @RequestParam(name = "date_to", required = false)
                     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                    LocalDate dateTo,
+                    LocalDateTime dateTo,
 
                     @RequestParam(defaultValue = "20")
                     Integer limit,

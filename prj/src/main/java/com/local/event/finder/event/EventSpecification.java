@@ -63,7 +63,7 @@ public class EventSpecification {
             if (filter.getDateFrom() != null) {
                 predicates.add(
                         cb.greaterThanOrEqualTo(
-                                root.get("eventDate"),
+                                root.get("startTime"),
                                 filter.getDateFrom()
                         )
                 );
@@ -73,7 +73,7 @@ public class EventSpecification {
             if (filter.getDateTo() != null) {
                 predicates.add(
                         cb.lessThanOrEqualTo(
-                                root.get("eventDate"),
+                                root.get("endTime"),
                                 filter.getDateTo()
                         )
                 );
