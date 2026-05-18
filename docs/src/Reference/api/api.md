@@ -219,7 +219,7 @@ Authorization: Bearer <access_token>
 ```json
 {
   "error": {
-    "code": "INVALID_TOKEN",
+    "code": 401,
     "message": "Reset token is invalid or expired."
   }
 }
