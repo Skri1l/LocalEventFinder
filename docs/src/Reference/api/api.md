@@ -232,10 +232,9 @@ Authorization: Bearer <access_token>
 ```text
 POST /auth/forgot-password
         ↓
-email with reset link
+email with reset token
         ↓
-frontend opens page:
-https://app.com/reset-password?token=xxx
+user from frontend sends reset token
         ↓
 POST /auth/reset-password
 ```
