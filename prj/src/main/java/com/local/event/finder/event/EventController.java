@@ -8,17 +8,22 @@ import com.local.event.finder.logging.LoggerFactory;
 import com.local.event.finder.event.participant.EventParticipantResponseDto;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -58,9 +63,47 @@ public class EventController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public ApiResponseDto<List<EventResponseDto>> getAllEvents(){
+    public ApiResponseDto<List<EventResponseDto>> getAllEvents(
+                    @RequestParam(required = false)
+                    String city,
+
+                    @RequestParam(required = false)
+                    String country,
+
+                    @RequestParam(name = "category_id", required = false)
+                    Long categoryId,
+
+                    @RequestParam(name = "tag_id", required = false)
+                    Long tagId,
+
+                    @RequestParam(name = "date_from", required = false)
+                    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate dateFrom,
+
+                    @RequestParam(name = "date_to", required = false)
+                    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate dateTo,
+
+                    @RequestParam(defaultValue = "20")
+                    Integer limit,
+
+                    @RequestParam(defaultValue = "0")
+                    Integer offset
+    ) {
         log.info("EventController:getAllEvents");
-        return new ApiResponseDto<>(eventService.getAll());
+
+        EventFilterRequestDto filter = new EventFilterRequestDto();
+
+        filter.setCity(city);
+        filter.setCountry(country);
+        filter.setCategoryId(categoryId);
+        filter.setTagId(tagId);
+        filter.setDateFrom(dateFrom);
+        filter.setDateTo(dateTo);
+        filter.setLimit(limit);
+        filter.setOffset(offset);
+
+        return new ApiResponseDto<>(eventService.getAll(filter));
     }
 
     @PatchMapping("/{id}")

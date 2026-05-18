@@ -10,7 +10,7 @@ public interface EventService {
 
     Event getById(Long id);
 
-    List<EventResponseDto> getAll();
+    List<EventResponseDto> getAll(EventFilterRequestDto filter);
 
     List<EventResponseDto> getByCurrentUser();
 
