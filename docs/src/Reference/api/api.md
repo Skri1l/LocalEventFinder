@@ -184,8 +184,7 @@ Authorization: Bearer <access_token>
 ```json
 {
   "data": {
-    "status": "OK",
-    "message": "If an account with this email exists, a reset link has been sent."
+    "status": "OK"
   }
 }
 ```
