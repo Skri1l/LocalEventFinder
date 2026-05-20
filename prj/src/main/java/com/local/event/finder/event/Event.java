@@ -21,12 +21,14 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Size;
+import jakarta.persistence.CascadeType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.validator.constraints.URL;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @Getter
@@ -91,9 +93,9 @@ public class Event {
     @PastOrPresent
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "event")
-    private Set<EventTag> eventTags;
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<EventTag> eventTags = new HashSet<>();
 
-    @OneToMany(mappedBy = "event")
-    private Set<EventCategory> eventCategory;
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<EventCategory> eventCategory = new HashSet<>();
 }

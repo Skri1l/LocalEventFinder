@@ -74,6 +74,47 @@ public class EventServiceImpl implements EventService {
         event.setImageUrl(eventDto.imageUrl());
         event.setCreatedBy(user);
 
+        // tags
+        if (eventDto.tagIds() != null) {
+
+            Set<EventTag> eventTags = eventDto.tagIds()
+                    .stream()
+                    .map(tagId -> {
+
+                        Tag tag = tagRepository.getReferenceById(tagId);
+
+                        EventTag eventTag = new EventTag();
+                        eventTag.setEvent(event);
+                        eventTag.setTag(tag);
+
+                        return eventTag;
+                    })
+                    .collect(Collectors.toSet());
+
+            event.getEventTags().addAll(eventTags);
+        }
+
+        // categories
+        if (eventDto.categoryIds() != null) {
+
+            Set<EventCategory> eventCategories = eventDto.categoryIds()
+                    .stream()
+                    .map(categoryId -> {
+
+                        Category category =
+                                categoryRepository.getReferenceById(categoryId);
+
+                        EventCategory eventCategory = new EventCategory();
+                        eventCategory.setEvent(event);
+                        eventCategory.setCategory(category);
+
+                        return eventCategory;
+                    })
+                    .collect(Collectors.toSet());
+
+            event.getEventCategory().addAll(eventCategories);
+        }
+
         eventRepository.save(event);
         return event.getId();
     }
