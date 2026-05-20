@@ -392,11 +392,13 @@ If everything OK **Response:**
   "description": "Outdoor event",
   "latitude": 54.6872,
   "longitude": 25.2797,
-  "start_time": "2026-06-01T10:00:00Z",
-  "end_time": "2026-06-01T18:00:00Z",
-  "max_participants": 100,
-  "age_restriction": 18,
-  "image_url": "...",
+  "startTime": "2026-06-01T10:00:00Z",
+  "endTime": "2026-06-01T18:00:00Z",
+  "maxParticipants": 100,
+  "ageRestriction": 18,
+  "tagIds": [1, 2],
+  "categoryIds": [1, 2],
+  "imageUrl": "...",
   "status": "upcoming"
 }
 ```
@@ -428,14 +430,14 @@ If everything OK **Response:**
     "description": "Outdoor event",
     "latitude": 54.6872,
     "longitude": 25.2797,
-    "start_time": "2026-06-01T10:00:00Z",
-    "end_time": "2026-06-01T18:00:00Z",
-    "max_participants": 100,
-    "age_restriction": 18,
-    "image_url": "...",
+    "startTime": "2026-06-01T10:00:00Z",
+    "endTime": "2026-06-01T18:00:00Z",
+    "maxParticipants": 100,
+    "ageRestriction": 18,
+    "imageUrl": "...",
     "status": "upcoming",
-    "created_by": 27,
-    "created_at": "2026-06-01T10:00:00Z"
+    "createdBy": 27,
+    "createdAt": "2026-06-01T10:00:00Z"
   }
 }
 ```
@@ -470,14 +472,19 @@ If everything OK **Response:**
       "description": "Outdoor event",
       "latitude": 54.6872,
       "longitude": 25.2797,
-      "start_time": "2026-06-01T10:00:00Z",
-      "end_time": "2026-06-01T18:00:00Z",
-      "max_participants": 100,
-      "age_restriction": 18,
-      "image_url": "...",
+      "startTime": "2026-06-01T10:00:00Z",
+      "endTime": "2026-06-01T18:00:00Z",
+      "maxParticipants": 100,
+      "ageRestriction": 18,
+      "tagIds": [],
+      "categoryIds": [
+        1,
+        2
+      ],
+      "imageUrl": "...",
       "status": "upcoming",
-      "created_by": 27,
-      "created_at": "2026-06-01T10:00:00Z"
+      "createdBy": 27,
+      "createdAt": "2026-06-01T10:00:00Z"
     },
     /* etc. */
   ]
@@ -499,14 +506,19 @@ If everything OK **Response:**
     "description": "Outdoor event",
     "latitude": 54.6872,
     "longitude": 25.2797,
-    "start_time": "2026-06-01T10:00:00Z",
-    "end_time": "2026-06-01T18:00:00Z",
-    "max_participants": 100,
-    "age_restriction": 18,
-    "image_url": "...",
+    "startTime": "2026-06-01T10:00:00Z",
+    "endTime": "2026-06-01T18:00:00Z",
+    "maxParticipants": 100,
+    "ageRestriction": 18,
+    "imageUrl": "...",
+      "tagIds": [],
+      "categoryIds": [
+        1,
+        2
+      ],
     "status": "upcoming",
-    "created_by": 27,
-    "created_at": "2026-06-01T10:00:00Z"
+    "createdBy": 27,
+    "createdAt": "2026-06-01T10:00:00Z"
   }
 }
 ```
@@ -585,6 +597,11 @@ If everything OK **Response:**
       "max_participants": 100,
       "age_restriction": 18,
       "image_url": "...",
+      "tagIds": [],
+      "categoryIds": [
+        1,
+        2
+      ],
       "status": "upcoming",
       "created_by": 27,
       "created_at": "2026-06-01T10:00:00Z"
