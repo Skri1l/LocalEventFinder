@@ -26,6 +26,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Objects;
@@ -46,14 +47,22 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public long create(EventRequestDto eventDto) {
+
         Objects.requireNonNull(eventDto, "Event cannot be null");
 
-        if(eventRepository.existsByTitleAndStartTimeAndEndTimeAndLatitudeAndLongitude(
+        if (eventDto.endTime().isBefore(eventDto.startTime())) {
+            throw new IllegalArgumentException("End time must be after start time");
+        }
+
+        boolean exists = eventRepository.existsByTitleAndStartTimeAndEndTimeAndLatitudeAndLongitude(
                 eventDto.title(),
                 eventDto.startTime(),
                 eventDto.endTime(),
                 eventDto.latitude(),
-                eventDto.longitude())){
+                eventDto.longitude()
+        );
+
+        if (exists) {
             throw new IllegalStateException("This event already exists");
         }
 
@@ -74,14 +83,20 @@ public class EventServiceImpl implements EventService {
         event.setImageUrl(eventDto.imageUrl());
         event.setCreatedBy(user);
 
+        // IMPORTANT: ensure collections are initialized
+        event.setEventTags(new HashSet<>());
+        event.setEventCategory(new HashSet<>());
+
         // tags
-        if (eventDto.tagIds() != null) {
+        if (eventDto.tagIds() != null && !eventDto.tagIds().isEmpty()) {
 
             Set<EventTag> eventTags = eventDto.tagIds()
                     .stream()
                     .map(tagId -> {
 
-                        Tag tag = tagRepository.getReferenceById(tagId);
+                        Tag tag = tagRepository.findById(tagId)
+                                .orElseThrow(() ->
+                                        new IllegalArgumentException("Tag not found: " + tagId));
 
                         EventTag eventTag = new EventTag();
                         eventTag.setEvent(event);
@@ -95,14 +110,15 @@ public class EventServiceImpl implements EventService {
         }
 
         // categories
-        if (eventDto.categoryIds() != null) {
+        if (eventDto.categoryIds() != null && !eventDto.categoryIds().isEmpty()) {
 
             Set<EventCategory> eventCategories = eventDto.categoryIds()
                     .stream()
                     .map(categoryId -> {
 
-                        Category category =
-                                categoryRepository.getReferenceById(categoryId);
+                        Category category = categoryRepository.findById(categoryId)
+                                .orElseThrow(() ->
+                                        new IllegalArgumentException("Category not found: " + categoryId));
 
                         EventCategory eventCategory = new EventCategory();
                         eventCategory.setEvent(event);
@@ -115,8 +131,8 @@ public class EventServiceImpl implements EventService {
             event.getEventCategory().addAll(eventCategories);
         }
 
-        eventRepository.save(event);
-        return event.getId();
+        Event saved = eventRepository.save(event);
+        return saved.getId();
     }
 
     @Override
