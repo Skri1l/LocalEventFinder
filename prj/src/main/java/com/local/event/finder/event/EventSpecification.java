@@ -43,7 +43,7 @@ public class EventSpecification {
             if (filter.getCategoryId() != null) {
                 predicates.add(
                         cb.equal(
-                                root.get("category").get("id"),
+                                root.get("eventCategory").get("id"),
                                 filter.getCategoryId()
                         )
                 );
@@ -53,7 +53,7 @@ public class EventSpecification {
             if (filter.getTagId() != null) {
                 predicates.add(
                         cb.equal(
-                                root.join("tags").get("id"),
+                                root.join("eventTags").get("id"),
                                 filter.getTagId()
                         )
                 );
