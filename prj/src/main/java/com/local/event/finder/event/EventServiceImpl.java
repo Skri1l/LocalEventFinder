@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -27,8 +26,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -45,14 +47,22 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public long create(EventRequestDto eventDto) {
+
         Objects.requireNonNull(eventDto, "Event cannot be null");
 
-        if(eventRepository.existsByTitleAndStartTimeAndEndTimeAndLatitudeAndLongitude(
+        if (eventDto.endTime().isBefore(eventDto.startTime())) {
+            throw new IllegalArgumentException("End time must be after start time");
+        }
+
+        boolean exists = eventRepository.existsByTitleAndStartTimeAndEndTimeAndLatitudeAndLongitude(
                 eventDto.title(),
                 eventDto.startTime(),
                 eventDto.endTime(),
                 eventDto.latitude(),
-                eventDto.longitude())){
+                eventDto.longitude()
+        );
+
+        if (exists) {
             throw new IllegalStateException("This event already exists");
         }
 
@@ -73,8 +83,56 @@ public class EventServiceImpl implements EventService {
         event.setImageUrl(eventDto.imageUrl());
         event.setCreatedBy(user);
 
-        eventRepository.save(event);
-        return event.getId();
+        // IMPORTANT: ensure collections are initialized
+        event.setEventTags(new HashSet<>());
+        event.setEventCategory(new HashSet<>());
+
+        // tags
+        if (eventDto.tagIds() != null && !eventDto.tagIds().isEmpty()) {
+
+            Set<EventTag> eventTags = eventDto.tagIds()
+                    .stream()
+                    .map(tagId -> {
+
+                        Tag tag = tagRepository.findById(tagId)
+                                .orElseThrow(() ->
+                                        new IllegalArgumentException("Tag not found: " + tagId));
+
+                        EventTag eventTag = new EventTag();
+                        eventTag.setEvent(event);
+                        eventTag.setTag(tag);
+
+                        return eventTag;
+                    })
+                    .collect(Collectors.toSet());
+
+            event.getEventTags().addAll(eventTags);
+        }
+
+        // categories
+        if (eventDto.categoryIds() != null && !eventDto.categoryIds().isEmpty()) {
+
+            Set<EventCategory> eventCategories = eventDto.categoryIds()
+                    .stream()
+                    .map(categoryId -> {
+
+                        Category category = categoryRepository.findById(categoryId)
+                                .orElseThrow(() ->
+                                        new IllegalArgumentException("Category not found: " + categoryId));
+
+                        EventCategory eventCategory = new EventCategory();
+                        eventCategory.setEvent(event);
+                        eventCategory.setCategory(category);
+
+                        return eventCategory;
+                    })
+                    .collect(Collectors.toSet());
+
+            event.getEventCategory().addAll(eventCategories);
+        }
+
+        Event saved = eventRepository.save(event);
+        return saved.getId();
     }
 
     @Override
@@ -124,18 +182,30 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventResponseDto update(Long id, EventRequestDto eventDto) {
+
         Objects.requireNonNull(id, "Event id cannot be null");
         Objects.requireNonNull(eventDto, "Event request cannot be null");
-        if(eventRepository.existsByTitleAndStartTimeAndEndTimeAndLatitudeAndLongitudeAndIdNot(
-                eventDto.title(),
-                eventDto.startTime(),
-                eventDto.endTime(),
-                eventDto.latitude(),
-                eventDto.longitude(),
-                id)){
+
+        if (eventDto.endTime().isBefore(eventDto.startTime())) {
+            throw new IllegalArgumentException("End time must be after start time");
+        }
+
+        boolean exists = eventRepository
+                .existsByTitleAndStartTimeAndEndTimeAndLatitudeAndLongitudeAndIdNot(
+                        eventDto.title(),
+                        eventDto.startTime(),
+                        eventDto.endTime(),
+                        eventDto.latitude(),
+                        eventDto.longitude(),
+                        id
+                );
+
+        if (exists) {
             throw new IllegalArgumentException("This event already exists");
         }
+
         Event existingEvent = getById(id);
+
         validateEventCreator(existingEvent);
 
         existingEvent.setTitle(eventDto.title());
@@ -149,7 +219,51 @@ public class EventServiceImpl implements EventService {
         existingEvent.setMaxParticipants(eventDto.maxParticipants());
         existingEvent.setAgeRestriction(eventDto.ageRestriction());
         existingEvent.setImageUrl(eventDto.imageUrl());
+
+        // update tags
+        if (eventDto.tagIds() != null) {
+
+            existingEvent.getEventTags().clear();
+
+            Set<EventTag> eventTags = eventDto.tagIds()
+                    .stream()
+                    .map(tagId -> {
+                        Tag tag = tagRepository.getReferenceById(tagId);
+
+                        EventTag eventTag = new EventTag();
+                        eventTag.setEvent(existingEvent);
+                        eventTag.setTag(tag);
+
+                        return eventTag;
+                    })
+                    .collect(Collectors.toSet());
+
+            existingEvent.getEventTags().addAll(eventTags);
+        }
+
+        // update categories
+        if (eventDto.categoryIds() != null) {
+
+            existingEvent.getEventCategory().clear();
+
+            Set<EventCategory> categories = eventDto.categoryIds()
+                    .stream()
+                    .map(categoryId -> {
+                        Category category = categoryRepository.getReferenceById(categoryId);
+
+                        EventCategory eventCategory = new EventCategory();
+                        eventCategory.setEvent(existingEvent);
+                        eventCategory.setCategory(category);
+
+                        return eventCategory;
+                    })
+                    .collect(Collectors.toSet());
+
+            existingEvent.getEventCategory().addAll(categories);
+        }
+
         Event savedEvent = eventRepository.save(existingEvent);
+
         return toResponseDto(savedEvent);
     }
 
@@ -164,6 +278,21 @@ public class EventServiceImpl implements EventService {
 
 
     private EventResponseDto toResponseDto(Event event) {
+
+        Set<Long> tagIds = event.getEventTags() == null
+                ? Set.of()
+                : event.getEventTags()
+                    .stream()
+                    .map(et -> et.getTag().getId())
+                    .collect(Collectors.toSet());
+
+        Set<Long> categoryIds = event.getEventCategory() == null
+                ? Set.of()
+                : event.getEventCategory()
+                    .stream()
+                    .map(ec -> ec.getCategory().getId())
+                    .collect(Collectors.toSet());
+
         return new EventResponseDto(
                 event.getId(),
                 event.getTitle(),
@@ -177,8 +306,8 @@ public class EventServiceImpl implements EventService {
                 event.getMaxParticipants(),
                 event.getAgeRestriction(),
                 event.getImageUrl(),
-                null,
-                null,
+                tagIds,
+                categoryIds,
                 event.getCreatedAt()
         );
     }
