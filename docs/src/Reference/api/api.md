@@ -314,7 +314,7 @@ If everything OK **Response:**
 
 ### Block User
 
-**PATCH** `/admin/{id}/block`
+**PATCH** `/admin/users/{id}/block`
 
 **Requires authorization:** Yes - Only admin can block users.
 
@@ -330,7 +330,7 @@ If everything OK **Response:**
 
 ### UnBlock User
 
-**DELETE** `/admin/{id}/block`
+**DELETE** `/admin/users/{id}/block`
 
 **Requires authorization:** Yes - Only admin can block users.
 
@@ -346,7 +346,7 @@ If everything OK **Response:**
 
 ### Enhance the role of User
 
-**PATCH** `/admin/{id}/op`
+**PATCH** `/admin/users/{id}/op`
 
 **Requires authorization:** Yes - Only admin can Enhance role users.
 
