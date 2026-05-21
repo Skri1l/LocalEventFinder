@@ -643,7 +643,6 @@ If everything OK **Response:**
 
 ```json
 {
-  "id": 67,
   "name": "Sports"
 }
 ```
@@ -722,7 +721,6 @@ If everything OK **Response:**
 
 ```json
 {
-  "id": 67,
   "name": "Outdoor"
 }
 ```
