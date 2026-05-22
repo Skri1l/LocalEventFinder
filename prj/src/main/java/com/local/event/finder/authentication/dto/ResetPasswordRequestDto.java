@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
 public record ResetPasswordRequestDto(
-        @JsonProperty("reset-token")
+        @JsonProperty("token")
         String resetToken,
 
         @NotBlank(message = "password cant be empty")
