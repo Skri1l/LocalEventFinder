@@ -1,7 +1,11 @@
 package com.local.event.finder.authentication;
 
 import com.local.event.finder.authentication.dto.AuthResponse;
+import com.local.event.finder.authentication.dto.ForgotPasswordRequestDto;
 import com.local.event.finder.authentication.dto.LoginRequest;
+import com.local.event.finder.authentication.dto.ResetPasswordRequestDto;
+import com.local.event.finder.notifications.EmailModel;
+import com.local.event.finder.notifications.EmailService;
 import com.local.event.finder.refreshToken.RefreshRequestDto;
 import com.local.event.finder.user.UserRequestDto;
 import com.local.event.finder.refreshToken.RefreshToken;
@@ -21,6 +25,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.security.SecureRandom;
 import java.util.Objects;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
@@ -34,11 +40,15 @@ public class AuthService {
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final UserDetailsService userDetailsService;
+    private final EmailService emailService;
     /*
     COMMENT: its better to use getter method from service, not this field here.
      */
     @Value("${jwt.expiration}")
     private Long expiration;
+
+    private static final String TEMP_PASSWORD_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
 
     @Transactional
@@ -107,4 +117,47 @@ public class AuthService {
                         .orElseThrow(() -> new EntityNotFoundException("Refresh token not found"));
         refreshTokenService.revokeRefreshToken(token);
     }
+
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequestDto dto) {
+        Objects.requireNonNull(dto, "Email must not be null");
+        User user = userRepository.findByEmail(dto.email())
+                .orElseThrow(() -> new EntityNotFoundException("User with email " + dto.email() + " not found"));
+
+        String temporaryPass = generateTemporaryPassword();
+        user.setPasswordHash(passwordEncoder.encode(temporaryPass));
+        userRepository.save(user);
+
+        emailService.sendEmail(new EmailModel(
+                user.getEmail(), "Temporary password", "Your password : " + temporaryPass
+        ));
+    }
+
+    @Transactional
+    public void resetPassword(ResetPasswordRequestDto dto) {
+        Objects.requireNonNull(dto, "Password must not be null");
+        if (dto.resetToken() == null || dto.resetToken().isEmpty()) {
+            throw new IllegalStateException("Reset token must not be null");
+        }
+
+        User user = userRepository.findAll()
+                .stream()
+                .filter(currentUser -> passwordEncoder.matches(dto.resetToken(), currentUser.getPasswordHash()))
+                .findFirst()
+                .orElseThrow(() -> new AccessDeniedException("Invalid reset token"));
+
+        user.setPasswordHash(passwordEncoder.encode(dto.resetToken()));
+        userRepository.save(user);
+    }
+
+    private String generateTemporaryPassword() {
+        int length = 12;
+        StringBuilder pass =  new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            int index = SECURE_RANDOM.nextInt(TEMP_PASSWORD_CHARS.length());
+            pass.append(TEMP_PASSWORD_CHARS.charAt(index));
+        }
+        return pass.toString();
+    }
+
 }
