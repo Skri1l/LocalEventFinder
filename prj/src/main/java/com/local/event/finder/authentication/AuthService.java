@@ -146,7 +146,7 @@ public class AuthService {
                 .findFirst()
                 .orElseThrow(() -> new AccessDeniedException("Invalid reset token"));
 
-        user.setPasswordHash(passwordEncoder.encode(dto.resetToken()));
+        user.setPasswordHash(passwordEncoder.encode(dto.password()));
         userRepository.save(user);
     }
 
