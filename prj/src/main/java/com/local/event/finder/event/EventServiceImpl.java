@@ -9,6 +9,8 @@ import com.local.event.finder.event.tag.EventTag;
 import com.local.event.finder.event.tag.EventTagRepository;
 import com.local.event.finder.event.tag.Tag;
 import com.local.event.finder.event.tag.TagRepository;
+import com.local.event.finder.logging.AppLogger;
+import com.local.event.finder.logging.LoggerFactory;
 import com.local.event.finder.notifications.EmailModel;
 import com.local.event.finder.notifications.EmailService;
 import com.local.event.finder.user.User;
@@ -40,6 +42,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
+
+    private final static AppLogger log = LoggerFactory.getLogger(EventServiceImpl.class);
+
 
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
@@ -487,21 +492,32 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 
-    @Scheduled(fixedRate = 3_600_000)
+    @Scheduled(fixedRate = 60_000)
     public void sendEventRemind() {
+        log.info("Scheduler started");
         List<Event> events = eventRepository.findAll();
 
+        LocalDateTime now = LocalDateTime.now();
+
         for (Event event : events) {
-            Duration duration = Duration.between(LocalDateTime.now(), event.getStartTime());
-            if (duration.toHours() <= 24 && duration.toHours() > 0) {
-                List<EventParticipant> participants = eventParticipantRepository.findAllByEventId(event.getId());
+            LocalDateTime reminderTime = event.getStartTime().minusDays(1);
+            log.info("Reminder time: " + reminderTime);
+            if (!now.isBefore(reminderTime) && now.isBefore(reminderTime.plusMinutes(10))) {
+                log.info("Reminder condition PASSED");
+                List<EventParticipant> participants =
+                        eventParticipantRepository
+                                .findAllByEventId(event.getId());
+                log.info("Participants found: " + participants.size());
                 for (EventParticipant participant : participants) {
+                    log.info("Sending to: " + participant.getUser().getEmail());
                     EmailModel model = new EmailModel(
                             participant.getUser().getEmail(),
                             "",
                             ""
                     );
+
                     emailService.sendEmailNotification(model, event);
+                    log.info("Email send called");
                 }
             }
         }
