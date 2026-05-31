@@ -9,6 +9,8 @@ import com.local.event.finder.event.tag.EventTag;
 import com.local.event.finder.event.tag.EventTagRepository;
 import com.local.event.finder.event.tag.Tag;
 import com.local.event.finder.event.tag.TagRepository;
+import com.local.event.finder.notifications.EmailModel;
+import com.local.event.finder.notifications.EmailService;
 import com.local.event.finder.user.User;
 import com.local.event.finder.event.category.EventCategoryRepository;
 import com.local.event.finder.event.participant.EventParticipantRepository;
@@ -16,15 +18,18 @@ import com.local.event.finder.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.context.annotation.Scope;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -43,6 +48,7 @@ public class EventServiceImpl implements EventService {
     private final EventCategoryRepository eventCategoryRepository;
     private final TagRepository tagRepository;
     private final EventTagRepository eventTagRepository;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -479,5 +485,25 @@ public class EventServiceImpl implements EventService {
 
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
+    }
+
+    @Scheduled(fixedRate = 3_600_000)
+    public void sendEventRemind() {
+        List<Event> events = eventRepository.findAll();
+
+        for (Event event : events) {
+            Duration duration = Duration.between(LocalDateTime.now(), event.getStartTime());
+            if (duration.toHours() <= 24 && duration.toHours() > 0) {
+                List<EventParticipant> participants = eventParticipantRepository.findAllByEventId(event.getId());
+                for (EventParticipant participant : participants) {
+                    EmailModel model = new EmailModel(
+                            participant.getUser().getEmail(),
+                            "",
+                            ""
+                    );
+                    emailService.sendEmailNotification(model, event);
+                }
+            }
+        }
     }
 }
