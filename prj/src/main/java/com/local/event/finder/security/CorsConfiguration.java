@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class CorsConfiguration implements WebMvcConfigurer {
 
     private static final String FRONTEND_PORT1 = "5173";
-    private static final String FRONTEND_PORT2 = "5174";
+    private static final String FRONTEND_PORT2 = "80";
     private static final String FRONTEND_DOMAIN = "http://ec2-51-20-182-189.eu-north-1.compute.amazonaws.com";
     private static final String FRONTEND_IP = "http://51.20.182.189";
 
