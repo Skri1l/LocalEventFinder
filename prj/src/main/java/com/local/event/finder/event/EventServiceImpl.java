@@ -354,6 +354,9 @@ public class EventServiceImpl implements EventService {
         if (eventParticipantRepository.existsByEventIdAndUserId(eventId, user.getId())){
             throw new AccessDeniedException("User already joined this event");
         }
+        if (isHeldSameTimeAsOther(eventId, user)){
+            throw new AccessDeniedException("This event overlaps with another event in your schedule");
+        }
         long participantsCount = eventParticipantRepository.countByEventId(eventId);
         if (participantsCount >= event.getMaxParticipants()) {
             throw new IllegalStateException("Event max participants reached");
@@ -363,6 +366,31 @@ public class EventServiceImpl implements EventService {
         eventParticipant.setUser(user);
         eventParticipant.setDateTime(LocalDateTime.now());
         eventParticipantRepository.save(eventParticipant);
+    }
+
+    private boolean isHeldSameTimeAsOther(Long eventId, User user) {
+        Objects.requireNonNull(eventId, "Event id cannot be null");
+
+        Event event = getById(eventId);
+
+        List<Event> events = eventParticipantRepository
+                .findAllByUserId(user.getId())
+                .stream()
+                .map(EventParticipant::getEvent)
+                .toList();
+
+        for(Event other : events){
+            if (other.getId().equals(event.getId())) {
+                continue;
+            }
+            boolean isIntersect = other.getStartTime().isBefore(event.getEndTime())
+                    &&  other.getEndTime().isAfter(event.getStartTime());
+
+            if (isIntersect) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
