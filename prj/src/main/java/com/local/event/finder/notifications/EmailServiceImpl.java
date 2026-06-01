@@ -1,5 +1,6 @@
 package com.local.event.finder.notifications;
 
+import com.local.event.finder.event.Event;
 import com.local.event.finder.logging.AppLogger;
 import com.local.event.finder.logging.LoggerFactory;
 import com.local.event.finder.user.UserController;
@@ -32,5 +33,16 @@ public class EmailServiceImpl implements EmailService {
         mailSender.send(mailMessage);
         log.info("Email sent");
         return String.format("Successfully send email to: %s", emailModel.to());
+    }
+
+    @Override
+    public void sendEmailNotification(EmailModel emailModel, Event event) {
+        EmailModel notification = new EmailModel(
+                emailModel.to(),
+                "Event Notification",
+                "Your event " + event.getTitle() + " starts tomorrow at " + event.getStartTime()
+        );
+        sendEmail(notification);
+        log.info("Email notification sent");
     }
 }
