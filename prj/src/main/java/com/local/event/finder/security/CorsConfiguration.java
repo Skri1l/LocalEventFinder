@@ -19,9 +19,9 @@ public class CorsConfiguration implements WebMvcConfigurer {
                         "http://localhost:" + FRONTEND_PORT1,
                         FRONTEND_DOMAIN + ":" + FRONTEND_PORT1,
                         FRONTEND_IP + ":" + FRONTEND_PORT1,
-                        "http://localhost:" + FRONTEND_PORT2,
-                        FRONTEND_DOMAIN + ":" + FRONTEND_PORT2,
-                        FRONTEND_IP + ":" + FRONTEND_PORT2
+                        "http://localhost",
+                        FRONTEND_DOMAIN,
+                        FRONTEND_IP
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH")
                 .allowedHeaders("*")
