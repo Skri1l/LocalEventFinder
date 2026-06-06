@@ -23,6 +23,12 @@ public class UserController {
         return new ApiResponseDto<>(userService.getUserById(id));
     }
 
+    @GetMapping("/me")
+    public ApiResponseDto<UserResponseDto> getMineUser() {
+        log.info("UserController:get-me");
+        return new ApiResponseDto<>(userService.getCurrentUser());
+    }
+
     @PatchMapping("/me")
     public ApiResponseDto<UserUpdateResponseDto> updateUser(@Valid @RequestBody UserUpdateRequestDto dto) {
         log.info("UserController:update");
