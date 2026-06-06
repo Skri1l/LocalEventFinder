@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
@@ -22,23 +21,21 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto getUserById(Long id){
         Objects.requireNonNull(id,"User id cannot be null");
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        /*
-        COMMENT: u doesnt use email, but added getter
-         */
-        String email = authentication.getName();
+        SecurityContextHolder.getContext().getAuthentication();
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        return new UserResponseDto(
-                user.getId(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getAvatarUrl(),
-                user.getAge(),
-                user.getRole(),
-                user.isBlocked()
-        );
+        return toUserResponseDto(user);
+    }
+
+    @Override
+    public UserResponseDto getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        return toUserResponseDto(user);
     }
 
     @Override
@@ -106,5 +103,17 @@ public class UserServiceImpl implements UserService {
 
         refreshTokenRepository.deleteByUser(user);
         userRepository.delete(user);
+    }
+
+    static private UserResponseDto toUserResponseDto(final User user) {
+        return new UserResponseDto(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getAvatarUrl(),
+                user.getAge(),
+                user.getRole(),
+                user.isBlocked()
+        );
     }
 }

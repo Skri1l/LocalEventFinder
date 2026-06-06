@@ -264,6 +264,28 @@ POST /auth/reset-password
 }
 ```
 
+### Get Me
+
+**GET** `/users/me`
+
+**Requires authorization:** Yes
+
+**Response:**
+
+```json
+{
+  "data": {
+    "id": 5,
+    "username": "test2",
+    "email": "test2@gmail.com",
+    "imageUrl": "https://example.com/avatar.png",
+    "age": 10,
+    "role": "USER",
+    "isBlocked": false
+  }
+}
+```
+
 
 ### Update User (Partial)
 
